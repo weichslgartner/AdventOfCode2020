@@ -12,13 +12,14 @@ std::unordered_set<long long> parse_list(std::string const & file_name){
     std::unordered_set<long long> numbers;
     std::ifstream infile(file_name);
     std::stringstream ss{};
-    
     std::string token;
     if(infile.is_open()){
         ss << infile.rdbuf();
         while(ss >> token){
             numbers.insert(static_cast<long long>(std::stoi(token)));
         }
+    } else {
+      fmt::print(stderr, "Cannot open File {}!", file_name);
     }
     return numbers;
 }
@@ -45,17 +46,19 @@ std::optional<long long> part2(std::unordered_set<long long> &numbers, long long
     return {};
 }
 
-int main()
-{
-    auto numbers = parse_list("../input_01.txt");
-    auto res_part1 = part1(numbers,2020);
-    if(res_part1){
-        fmt::print("part1: {}",3);
-    }
-    auto res_part2 = part2(numbers,2020);
-    if(res_part1){
-        fmt::print("part2: {}",4);
-    }
-
-    return EXIT_SUCCESS;
+int main(int argc, char **argv) {
+  auto const *file_name = "build/input/input_01.txt";
+  if (argc == 2) {
+    file_name = argv[1];
+  }
+  auto numbers = parse_list(file_name);
+  auto res_part1 = part1(numbers, 2020);
+  if (res_part1) {
+    fmt::print("Part_1: {}\n", res_part1.value());
+  }
+  auto res_part2 = part2(numbers, 2020);
+  if (res_part1) {
+    fmt::print("Part_2: {}\n", res_part2.value());
+  }
+  return EXIT_SUCCESS;
 }
