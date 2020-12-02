@@ -17,9 +17,8 @@ struct pw_rule {
 
 bool check_part1(pw_rule const &rule) {
   namespace ranges = std::ranges;
-  auto count =
-      ranges::count_if(rule.pw.begin(), rule.pw.end(),
-                       [&rule](char i) { return i == rule.character; });
+  auto count = ranges::count_if(
+      rule.pw, [&rule](char i) { return i == rule.character; });
   return count >= rule.min_occ and count <= rule.max_occ;
 }
 
