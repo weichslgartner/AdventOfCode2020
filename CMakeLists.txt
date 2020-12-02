@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 
 # set the project name
 project(adventofcode20)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/input)
@@ -10,3 +12,4 @@ enable_testing()
 find_package(fmt)
 find_package(GTest)
 add_subdirectory(day01)
+add_subdirectory(day02)
