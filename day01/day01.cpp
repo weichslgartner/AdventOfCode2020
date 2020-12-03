@@ -58,11 +58,11 @@ int main(int argc, char **argv) {
   auto numbers = parse_list(file_name);
   auto res_part1 = part1(numbers, target);
   if (res_part1) {
-    fmt::print("Part_1: {}\n", res_part1.value());
+    fmt::print("Part 1: {}\n", res_part1.value());
   }
   auto res_part2 = part2(numbers, target);
   if (res_part1) {
-    fmt::print("Part_2: {}\n", res_part2.value());
+    fmt::print("Part 2: {}\n", res_part2.value());
   }
   return EXIT_SUCCESS;
 }

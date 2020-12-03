@@ -1,5 +1,5 @@
 #!/bin/bash
-mkdir -p build && cd build   
+mkdir -p build/bin && cd build   
 if [ ! 'profile show clang_profile' ] ; then
        conan profile new clang_profile --detect &&
        conan profile update settings.compiler=clang clang_profile  && 
@@ -7,9 +7,9 @@ if [ ! 'profile show clang_profile' ] ; then
        conan profile update settings.compiler.libcxx=libstdc++11 clang_profile
 fi
 conan  install .. --profile clang_profile --build=missing   
-CC=clang-11 CXX=clang++-11  cmake -DENABLE_CLANG_TIDY=True -DENABLE_CPPCHECK=True ..  && 
-cmake --build .  
-cd ..
+CC=clang-11 CXX=clang++-11  cmake -DENABLE_CLANG_TIDY=False -DENABLE_CPPCHECK=False ..  && 
+cmake --build .  &&
+cd .. &&
 for file in build/bin/* 
 do    
     echo ${file}  

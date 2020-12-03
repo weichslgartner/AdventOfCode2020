@@ -23,7 +23,7 @@ bool check_part1(pw_rule const &rule) {
 }
 
 bool check_part2(pw_rule const &rule) {
-  return (rule.pw.at(rule.min_occ - 1) == rule.character) ^
+  return (rule.pw.at(rule.min_occ - 1) == rule.character) xor
          (rule.pw.at(rule.max_occ - 1) == rule.character);
 }
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
       count_2 += static_cast<int>(check_part2(rule));
     }
   }
-  std::cout << "Part1: " << count_1 << "\n";
-  std::cout << "Part2: " << count_2 << "\n";
+  std::cout << "Part 1: " << count_1 << "\n";
+  std::cout << "Part 2: " << count_2 << "\n";
   return EXIT_SUCCESS;
 }
