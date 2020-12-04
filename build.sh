@@ -13,5 +13,6 @@ cd .. &&
 for file in build/bin/* 
 do    
     echo ${file}  
-    ./${file}
+    time ./${file}
+    printf "\n"
 done

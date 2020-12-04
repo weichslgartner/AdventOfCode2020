@@ -8,7 +8,7 @@
 #include <vector>
 namespace ranges = std::ranges;
 
-bool check_hcl(std::string const &in) {
+constexpr bool check_hcl(std::string const &in) {
   constexpr auto hair_len{7U};
   if ((in.size() != hair_len) or (in[0] != '#')) {
     return false;
@@ -18,18 +18,18 @@ bool check_hcl(std::string const &in) {
          }) == hair_len - 1;
 }
 
-bool check_ecl(std::string const &in) {
+constexpr bool check_ecl(std::string const &in) {
   if (in.size() != 3U) {
     return false;
   }
-  std::array<std::string, 7> const valid_ec  {"amb", "blu", "brn", "gry",
+  constexpr std::array const valid_ec  {"amb", "blu", "brn", "gry",
                                          "grn", "hzl", "oth"};
   return ranges::count_if(valid_ec, [in](std::string const &color) {
            return in.find(color) != std::string::npos;
          }) == 1U;
 }
 
-bool check_pid(std::string const &in) {
+constexpr bool check_pid(std::string const &in) {
   constexpr auto id_len{9U};
   if (in.size() != id_len) {
     return false;
@@ -39,7 +39,7 @@ bool check_pid(std::string const &in) {
              ) == id_len;
 }
 
-bool check_year(std::string const &in, unsigned min, unsigned max) {
+constexpr bool check_year(std::string const &in, unsigned min, unsigned max) {
   if (in.size() != 4U) {
     return false;
   }
@@ -47,7 +47,7 @@ bool check_year(std::string const &in, unsigned min, unsigned max) {
   return year >= min and year <= max;
 }
 
-bool check_hgt(std::string const &in) {
+constexpr bool check_hgt(std::string const &in) {
   if (in.find("in") != std::string::npos) {
     auto height{std::stoul(in.substr(0, in.size() - 2))};
     return height >= 59 and height <= 76;
@@ -59,11 +59,11 @@ bool check_hgt(std::string const &in) {
   return false;
 }
 
-bool check_byr(std::string const &in) { return check_year(in, 1920, 2002); }
+constexpr bool check_byr(std::string const &in) { return check_year(in, 1920, 2002); }
 
-bool check_iyr(std::string const &in) { return check_year(in, 2010, 2020); }
+constexpr bool check_iyr(std::string const &in) { return check_year(in, 2010, 2020); }
 
-bool check_eyr(std::string const &in) { return check_year(in, 2020, 2030); }
+constexpr bool check_eyr(std::string const &in) { return check_year(in, 2020, 2030); }
 
 bool check_field(std::string const &passport, std::string const &key,
                  std::function<bool(std::string const &)> fun) {
@@ -89,7 +89,7 @@ bool test_passport_p2(std::string const &passport) {
   return byr and iyr and eyr and hgt and hcl and ecl and pid;
 }
 
-bool test_passport_p1(std::string const &passport) {
+constexpr bool test_passport_p1(std::string const &passport) {
   auto byr = passport.find("byr:") != std::string::npos;
   auto iyr = passport.find("iyr:") != std::string::npos;
   auto eyr = passport.find("eyr:") != std::string::npos;
@@ -122,13 +122,16 @@ int main(int argc, char **argv) {
     file_name = args[1];
   }
   std::ifstream infile(file_name);
+  if(not infile.is_open()){
+	  std::cerr << "Cannot open " << file_name << "\n";
+	  return EXIT_FAILURE;
+  }
   std::string line;
   std::stringstream ss;
   ss << infile.rdbuf();
   ss << "\n\n"; //empty line for last rule
   std::string cur_passport;
   std::vector<std::string> passports;
-  int c_valid{0};
   while (std::getline(ss, line)) {
     cur_passport.append(line);
     cur_passport.append(" ");
@@ -139,5 +142,5 @@ int main(int argc, char **argv) {
   }
   std::cout << "Part 1: " << ranges::count_if(passports,[](std::string const &p){return test_passport_p1(p); }) << "\n";
   std::cout << "Part 2: " << ranges::count_if(passports,[](std::string const &p){return test_passport_p2(p); }) << "\n";
-  return 0;
+  return EXIT_SUCCESS;
 }
