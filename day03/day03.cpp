@@ -28,8 +28,8 @@ template <> struct hash<Point> {
 
 int count_trees(std::vector<Point> const &slopes,
                 std::unordered_set<Point> const &trees, Point const &limits) {
-  int slope_mult = 1;
-  int tree_count = 0;
+  int slope_mult{1};
+  int tree_count{0};
   for (auto slope : slopes) {
     int cur_x{0};
     int cur_y{0};
@@ -51,9 +51,9 @@ int count_trees(std::vector<Point> const &slopes,
 
 std::pair<std::unordered_set<Point>, Point> parse_input(char const *file_name) {
   std::ifstream infile(file_name);
-  if(not infile.is_open()){
-      std::cerr << "Cannot open File: " << file_name;
-      return {};
+  if (not infile.is_open()) {
+    std::cerr << "Cannot open File: " << file_name;
+    return {};
   }
   std::stringstream ss{};
   ss << infile.rdbuf();
