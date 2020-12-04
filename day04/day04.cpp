@@ -1,61 +1,53 @@
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <fstream>
 #include <iostream>
+#include <span>
 #include <sstream>
 #include <string>
 #include <vector>
+namespace ranges = std::ranges;
 
-bool check_haircolor(std::string const &in) {
-  constexpr auto hair_len{7};
-  if (in.size() != hair_len) {
+bool check_hcl(std::string const &in) {
+  constexpr auto hair_len{7U};
+  if ((in.size() != hair_len) or (in[0] != '#')) {
     return false;
   }
-  if (in[0] != '#') {
-    return false;
-  }
-  return std::count_if(in.begin(), in.end(), [](unsigned char c) {
+  return ranges::count_if(in, [](unsigned char c) {
            return std::isxdigit(c);
-         }) == hair_len-1;
+         }) == hair_len - 1;
 }
 
-bool check_eyecolor(std::string const &in) {
-  if (in.size() != 3) {
+bool check_ecl(std::string const &in) {
+  if (in.size() != 3U) {
     return false;
   }
   std::array<std::string, 7> const valid_ec  {"amb", "blu", "brn", "gry",
                                          "grn", "hzl", "oth"};
-  for (auto const &color : valid_ec) {
-    if (in.find(color) != std::string::npos) {
-      return true;
-    }
-  }
-  return false;
+  return ranges::count_if(valid_ec, [in](std::string const &color) {
+           return in.find(color) != std::string::npos;
+         }) == 1U;
 }
 
-bool check_id(std::string const &in) {
-  constexpr auto id_len{9};
+bool check_pid(std::string const &in) {
+  constexpr auto id_len{9U};
   if (in.size() != id_len) {
     return false;
   }
-  return std::count_if(
-             in.begin(), in.end(),
-             [](unsigned char c) { return std::isdigit(c); } // correct
+  return ranges::count_if(
+             in, [](unsigned char c) { return std::isdigit(c); } // correct
              ) == id_len;
 }
 
-bool check_year(std::string const &in, int min, int max) {
-  if (in.size() != 4) {
+bool check_year(std::string const &in, unsigned min, unsigned max) {
+  if (in.size() != 4U) {
     return false;
   }
   auto year{std::stoul(in)};
   return year >= min and year <= max;
 }
-/*
-If cm, the number must be at least 150 and at most 193.
-If in, the number must be at least 59 and at most 76.
-*/
-bool check_height(std::string const &in) {
+
+bool check_hgt(std::string const &in) {
   if (in.find("in") != std::string::npos) {
     auto height{std::stoul(in.substr(0, in.size() - 2))};
     return height >= 59 and height <= 76;
@@ -65,6 +57,36 @@ bool check_height(std::string const &in) {
     return height >= 150 and height <= 193;
   }
   return false;
+}
+
+bool check_byr(std::string const &in) { return check_year(in, 1920, 2002); }
+
+bool check_iyr(std::string const &in) { return check_year(in, 2010, 2020); }
+
+bool check_eyr(std::string const &in) { return check_year(in, 2020, 2030); }
+
+bool check_field(std::string const &passport, std::string const &key,
+                 std::function<bool(std::string const &)> fun) {
+  auto value_pos{passport.find(key)};
+  auto key_len{key.size()};
+  if (value_pos != std::string::npos) {
+    auto token_end = passport.find_first_of(' ', value_pos);
+    auto token =
+        passport.substr(value_pos + key_len, token_end - (value_pos + key_len));
+    return fun(token);
+  }
+  return false;
+}
+
+bool test_passport_p2(std::string const &passport) {
+  auto byr{check_field(passport, "byr:", check_byr)};
+  auto iyr{check_field(passport, "iyr:", check_iyr)};
+  auto eyr{check_field(passport, "eyr:", check_eyr)};
+  auto hgt{check_field(passport, "hgt:", check_hgt)};
+  auto hcl{check_field(passport, "hcl:", check_hcl)};
+  auto ecl{check_field(passport, "ecl:", check_ecl)};
+  auto pid{check_field(passport, "pid:", check_pid)};
+  return byr and iyr and eyr and hgt and hcl and ecl and pid;
 }
 
 bool test_passport_p1(std::string const &passport) {
@@ -79,101 +101,27 @@ bool test_passport_p1(std::string const &passport) {
   return byr and iyr and eyr and hgt and hcl and ecl and pid;
 }
 
-/**
- * byr (Birth Year) - four digits; at least 1920 and at most 2002.
-iyr (Issue Year) - four digits; at least 2010 and at most 2020.
-eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
-*/
-bool test_passport_p2(std::string const &passport) {
-  auto byr = passport.find("byr:");
-  if (byr != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', byr);
-    auto byr_year = passport.substr(byr + 4, token_end - (byr + 4));
-    if (not check_year(byr_year, 1920, 2002)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  auto iyr = passport.find("iyr:");
-  if (iyr != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', iyr);
-    auto iyr_year = passport.substr(iyr + 4, token_end - (iyr + 4));
-    if (not check_year(iyr_year, 2010, 2020)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  auto eyr = passport.find("eyr:");
-  if (eyr != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', eyr);
-    auto eyr_year = passport.substr(eyr + 4, token_end - (eyr + 4));
-    if (not check_year(eyr_year, 2020, 2030)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  auto hgt = passport.find("hgt:");
-  if (hgt != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', hgt);
-    auto height = passport.substr(hgt + 4, token_end - (hgt + 4));
-    if (not check_height(height)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  auto hcl = passport.find("hcl:");
-  if (hcl != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', hcl);
-    auto hair_color = passport.substr(hcl + 4, token_end - (hcl + 4));
-    if (not check_haircolor(hair_color)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  auto ecl = passport.find("ecl:");
-  if (ecl != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', ecl);
-    auto eye_color = passport.substr(ecl + 4, token_end - (ecl + 4));
-    if (not check_eyecolor(eye_color)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  auto pid = passport.find("pid:");
-  if (pid != std::string::npos) {
-    auto token_end = passport.find_first_of(' ', pid);
-    auto id = passport.substr(pid + 4, token_end - (pid + 4));
-    if (not check_id(id)) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-  return true;
-}
-
 void tests() {
-  assert(check_height("149cm")==false);
-  assert(check_height("190in") == false);
-  assert(check_height("190") == false);
-  assert(check_haircolor("#123abc"));
-  assert(check_haircolor("#123abz") == false);
-  assert(check_haircolor("123abc") == false);
-  assert(check_eyecolor("wat") == false);
-  assert(check_eyecolor("brn"));
-  assert(check_id("000000001"));
-  assert(check_id("0123456789") == false);
+  assert(check_hgt("149cm") == false);
+  assert(check_hgt("190in") == false);
+  assert(check_hgt("190") == false);
+  assert(check_hcl("#123abc"));
+  assert(check_hcl("#123abz") == false);
+  assert(check_hcl("123abc") == false);
+  assert(check_ecl("wat") == false);
+  assert(check_ecl("brn"));
+  assert(check_pid("000000001"));
+  assert(check_pid("0123456789") == false);
 }
 
-int main() {
+int main(int argc, char **argv) {
   tests();
-  std::ifstream infile("build/input/input_04.txt");
+  auto const *file_name = "build/input/input_04.txt";
+  if (argc == 2) {
+    std::span<char *> args{argv, 2};
+    file_name = args[1];
+  }
+  std::ifstream infile(file_name);
   std::string line;
   std::stringstream ss;
   ss << infile.rdbuf();
@@ -189,9 +137,7 @@ int main() {
     cur_passport.clear();
     }
   }
-  namespace ranges = std::ranges;
   std::cout << "Part 1: " << ranges::count_if(passports,[](std::string const &p){return test_passport_p1(p); }) << "\n";
   std::cout << "Part 2: " << ranges::count_if(passports,[](std::string const &p){return test_passport_p2(p); }) << "\n";
-
   return 0;
 }
