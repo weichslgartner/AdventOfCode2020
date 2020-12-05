@@ -24,11 +24,8 @@ int get_seat(std::string const &input) {
 
   auto row = input.substr(0, 7);
   auto column = input.substr(7, 3);
-  char upper{'B'};
-  char lower{'F'};
-  auto row_pos = find_seat(row, 127, upper, lower);
+  auto row_pos = find_seat(row, 127, 'B', 'F');
   auto column_pos = find_seat(column, 7, 'R', 'L');
-  // std::cout << row_pos << " "<< column_pos;
   return row_pos * 8 + column_pos;
 }
 
@@ -37,6 +34,20 @@ void tests() {
   assert(get_seat("BFFFBBFRRR") == 567);
   assert(get_seat("FFFBBBFRRR") == 119);
   assert(get_seat("BBFFBBFRLL") == 820);
+}
+
+void find_my_seat(std::vector<int> seats) {
+	std::sort(seats.begin(), seats.end());
+	auto last_seat { seats[0] - 1 };
+	int myseat { 0 };
+	for (auto seat : seats) {
+		if ((seat - last_seat) > 1) {
+			myseat = seat - 1;
+			break;
+		}
+		last_seat = seat;
+	}
+	return myseat;
 }
 
 int main(int argc, char **argv) {
@@ -62,16 +73,7 @@ int main(int argc, char **argv) {
       max = id;
     seats.push_back(id);
   }
-  std::sort(seats.begin(), seats.end());
-  auto last_seat{seats[0] - 1};
-  int myseat{0};
-  for (auto seat : seats) {
-    if ((seat - last_seat) > 1) {
-      myseat = seat - 1;
-      break;
-    }
-    last_seat = seat;
-  }
+	auto myseat = find_my_seat(seats);
   std::cout << "Part 1: " << max << "\n";
   std::cout << "Part 2: " << myseat << "\n";
   return 0;
