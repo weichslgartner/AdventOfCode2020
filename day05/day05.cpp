@@ -36,18 +36,18 @@ void tests() {
   assert(get_seat("BBFFBBFRLL") == 820);
 }
 
-void find_my_seat(std::vector<int> seats) {
-	std::sort(seats.begin(), seats.end());
-	auto last_seat { seats[0] - 1 };
-	int myseat { 0 };
-	for (auto seat : seats) {
-		if ((seat - last_seat) > 1) {
-			myseat = seat - 1;
-			break;
-		}
-		last_seat = seat;
-	}
-	return myseat;
+int find_my_seat(std::vector<int> seats) {
+  std::sort(seats.begin(), seats.end());
+  auto last_seat{seats[0] - 1};
+  int myseat{0};
+  for (auto seat : seats) {
+    if ((seat - last_seat) > 1) {
+      myseat = seat - 1;
+      break;
+    }
+    last_seat = seat;
+  }
+  return myseat;
 }
 
 int main(int argc, char **argv) {
