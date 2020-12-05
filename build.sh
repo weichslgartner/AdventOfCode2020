@@ -7,7 +7,7 @@ if [ ! 'profile show clang_profile' ] ; then
        conan profile update settings.compiler.libcxx=libstdc++11 clang_profile
 fi
 conan  install .. --profile clang_profile --build=missing   
-CC=clang-11 CXX=clang++-11  cmake -DENABLE_CLANG_TIDY=False -DENABLE_CPPCHECK=False ..  && 
+CC=clang-11 CXX=clang++-11  cmake $1 -DENABLE_CLANG_TIDY=False -DENABLE_CPPCHECK=False ..  && 
 cmake --build .  &&
 cd .. &&
 for file in build/bin/* 
