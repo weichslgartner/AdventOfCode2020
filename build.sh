@@ -9,6 +9,7 @@ fi
 conan  install .. --profile clang_profile --build=missing   
 CC=clang-11 CXX=clang++-11  cmake $1 -DENABLE_CLANG_TIDY=False -DENABLE_CPPCHECK=False ..  && 
 cmake --build .  &&
+cmake --build . --target copy_input_files &&
 cd .. &&
 for file in build/bin/* 
 do    
