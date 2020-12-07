@@ -8,7 +8,7 @@
 #include <vector>
 namespace ranges = std::ranges;
 
-constexpr bool check_hcl(std::string const &in) {
+ bool check_hcl(std::string const &in) {
   constexpr auto hair_len{7U};
   if ((in.size() != hair_len) or (in[0] != '#')) {
     return false;
@@ -18,7 +18,7 @@ constexpr bool check_hcl(std::string const &in) {
          }) == hair_len - 1;
 }
 
-constexpr bool check_ecl(std::string const &in) {
+ bool check_ecl(std::string const &in) {
   if (in.size() != 3U) {
     return false;
   }
@@ -29,7 +29,7 @@ constexpr bool check_ecl(std::string const &in) {
          }) == 1U;
 }
 
-constexpr bool check_pid(std::string const &in) {
+ bool check_pid(std::string const &in) {
   constexpr auto id_len{9U};
   if (in.size() != id_len) {
     return false;
@@ -39,7 +39,7 @@ constexpr bool check_pid(std::string const &in) {
              ) == id_len;
 }
 
-constexpr bool check_year(std::string const &in, unsigned min, unsigned max) {
+ bool check_year(std::string const &in, unsigned min, unsigned max) {
   if (in.size() != 4U) {
     return false;
   }
@@ -47,7 +47,7 @@ constexpr bool check_year(std::string const &in, unsigned min, unsigned max) {
   return year >= min and year <= max;
 }
 
-constexpr bool check_hgt(std::string const &in) {
+ bool check_hgt(std::string const &in) {
   if (in.find("in") != std::string::npos) {
     auto height{std::stoul(in.substr(0, in.size() - 2))};
     return height >= 59 and height <= 76;
@@ -59,11 +59,11 @@ constexpr bool check_hgt(std::string const &in) {
   return false;
 }
 
-constexpr bool check_byr(std::string const &in) { return check_year(in, 1920, 2002); }
+ bool check_byr(std::string const &in) { return check_year(in, 1920, 2002); }
 
-constexpr bool check_iyr(std::string const &in) { return check_year(in, 2010, 2020); }
+ bool check_iyr(std::string const &in) { return check_year(in, 2010, 2020); }
 
-constexpr bool check_eyr(std::string const &in) { return check_year(in, 2020, 2030); }
+ bool check_eyr(std::string const &in) { return check_year(in, 2020, 2030); }
 
 bool check_field(std::string const &passport, std::string const &key,
                  std::function<bool(std::string const &)> fun) {
@@ -89,7 +89,7 @@ bool test_passport_p2(std::string const &passport) {
   return byr and iyr and eyr and hgt and hcl and ecl and pid;
 }
 
-constexpr bool test_passport_p1(std::string const &passport) {
+ bool test_passport_p1(std::string const &passport) {
   auto byr = passport.find("byr:") != std::string::npos;
   auto iyr = passport.find("iyr:") != std::string::npos;
   auto eyr = passport.find("eyr:") != std::string::npos;
