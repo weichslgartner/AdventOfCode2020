@@ -96,6 +96,7 @@ std::optional<int> interprete(std::vector<Instruction> &inst_mem,bool part_1,uns
 
 
 std::optional<int> repair(std::vector<Instruction> &inst_mem, unsigned max_count) {
+	auto i{0U};
 	for (auto &inst : inst_mem) {
 		auto const old_inst = inst;
 		if (inst.op == Op::NOP) {
@@ -105,13 +106,17 @@ std::optional<int> repair(std::vector<Instruction> &inst_mem, unsigned max_count
 			inst.op=Op::JMP;
 		} else if (inst.op == Op::JMP) {
 			inst.op=Op::NOP;
+		}else{
+			continue;
 		}
 		auto result = interprete(inst_mem, false, max_count);
 		if(result){
+			//fmt::print("{}\n",i);
 			return result.value();
 		}else{
 			inst = old_inst;
 		}
+		i++;
 	}
 	return {};
 }
