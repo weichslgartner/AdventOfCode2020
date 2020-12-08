@@ -20,6 +20,7 @@ add_subdirectory(day04)
 add_subdirectory(day05)
 add_subdirectory(day06)
 add_subdirectory(day07)
+add_subdirectory(day08)
 add_custom_target(copy_input_files)
 add_custom_command(TARGET copy_input_files
         COMMAND ${CMAKE_COMMAND} -E copy
