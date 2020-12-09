@@ -9,7 +9,10 @@
 #include <deque>
 #include <numeric>
 
-template<typename T>
+template <class T>
+concept Integral = std::is_integral<T>::value;
+
+template<Integral T>
 std::vector<T> parse_input(char const *const file_name) {
 	std::ifstream infile(file_name);
 	if (!infile.is_open()) {
@@ -28,11 +31,11 @@ std::vector<T> parse_input(char const *const file_name) {
 	}
 	return numbers;
 }
-template<typename T>
+template<Integral T>
 auto part_1(std::vector<T> const &numbers, T prelog_size) {
 	T target { 0 };
-	std::deque<T> deq{};
-	std::unordered_set<T> num_mem{};
+	std::deque<T> deq { };
+	std::unordered_set<T> num_mem { };
 	for (auto const number : numbers) {
 		if (deq.size() < prelog_size) {
 			deq.push_back(number);
@@ -59,14 +62,14 @@ auto part_1(std::vector<T> const &numbers, T prelog_size) {
 	return target;
 }
 
-template<typename T>
+template<Integral T>
 auto part_2(std::vector<T> const &numbers, T target) {
-	T part2 {  };
+	T part2 { };
 	std::vector<T> window { };
 	for (int i { 0 }; i < numbers.size(); ++i) {
 		auto j { i };
-		T sum{ };
-		while ((sum  = std::accumulate(window.begin(), window.end(), T{0})) < target && j < numbers.size()) {
+		T sum { };
+		while ((sum = std::accumulate(window.begin(), window.end(), T { 0 })) < target && j < numbers.size()) {
 			window.push_back(numbers[j]);
 			++j;
 		}
