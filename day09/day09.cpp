@@ -9,26 +9,30 @@
 #include <deque>
 #include <numeric>
 
-std::vector<unsigned long long> parse_input(char const *const file_name) {
+template<typename T>
+std::vector<T> parse_input(char const *const file_name) {
 	std::ifstream infile(file_name);
 	if (!infile.is_open()) {
 		std::cerr << "Cannot open " << file_name << "\n";
 		return {};
 	}
 	std::string line;
-	std::stringstream ss;
+	std::stringstream ss { };
 	ss << infile.rdbuf();
-	std::vector<unsigned long long> numbers;
+	std::vector<T> numbers;
 	while (std::getline(ss, line)) {
-		numbers.push_back(std::stoull(line));
+		T number;
+		std::stringstream convert { line };
+		convert >> number;
+		numbers.push_back(number);
 	}
 	return numbers;
 }
 template<typename T>
 auto part_1(std::vector<T> const &numbers, T prelog_size) {
-	auto target { 0ULL };
-	std::deque<T> deq;
-	std::unordered_set<T> num_mem;
+	T target { 0 };
+	std::deque<T> deq{};
+	std::unordered_set<T> num_mem{};
 	for (auto const number : numbers) {
 		if (deq.size() < prelog_size) {
 			deq.push_back(number);
@@ -57,15 +61,16 @@ auto part_1(std::vector<T> const &numbers, T prelog_size) {
 
 template<typename T>
 auto part_2(std::vector<T> const &numbers, T target) {
-	auto part2 { 0ULL };
+	T part2 {  };
 	std::vector<T> window { };
 	for (int i { 0 }; i < numbers.size(); ++i) {
 		auto j { i };
-		while (std::accumulate(window.begin(), window.end(), 0ULL) < target && j < numbers.size()) {
+		T sum{ };
+		while ((sum  = std::accumulate(window.begin(), window.end(), T{0})) < target && j < numbers.size()) {
 			window.push_back(numbers[j]);
 			++j;
 		}
-		if (std::accumulate(window.begin(), window.end(), 0ULL) == target) {
+		if (sum == target) {
 			std::sort(window.begin(), window.end());
 			part2 = window.front() + window.back();
 			break;
@@ -78,11 +83,11 @@ auto part_2(std::vector<T> const &numbers, T target) {
 
 int main() {
 	auto const *const file_name = "build/input/input_09.txt";
-	auto numbers = parse_input(file_name);
-
+	using T = unsigned long long;
+	auto numbers = parse_input<T>(file_name);
 	constexpr auto prelog_size { 25U };
-	auto target = part_1<unsigned long long>(numbers, prelog_size);
-	auto part2 = part_2<unsigned long long>(numbers, target);
+	auto target = part_1<T>(numbers, prelog_size);
+	auto part2 = part_2<T>(numbers, target);
 	fmt::print("Part 1: {}\n", target);
 	fmt::print("Part 2: {}\n", part2);
 	return EXIT_SUCCESS;
