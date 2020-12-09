@@ -1,13 +1,14 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <algorithm>
-#include <unordered_set>
-#include <fmt/printf.h>
+
 #include <deque>
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+#include <fstream>
 #include <numeric>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_set>
+#include <vector>
 
 template <class T>
 concept Integral = std::is_integral<T>::value;
@@ -16,8 +17,8 @@ template<Integral T>
 std::vector<T> parse_input(char const *const file_name) {
 	std::ifstream infile(file_name);
 	if (!infile.is_open()) {
-		std::cerr << "Cannot open " << file_name << "\n";
-		return {};
+          fmt::print("Cannot open {}\n", file_name);
+          return {};
 	}
 	std::string line;
 	std::stringstream ss { };
