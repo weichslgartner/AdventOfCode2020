@@ -60,9 +60,9 @@ std::vector<Instruction> parse_input(char const *const file_name) {
 }
 
 std::optional<int> interprete(std::vector<Instruction> &inst_mem, bool part_1, unsigned max_count) {
-	std::unordered_set<int> inst_hist;
-	int inst_pnt { 0 };
-	int acc_value { 0 };
+	std::unordered_set<unsigned> inst_hist;
+	auto inst_pnt { 0U };
+	auto acc_value { 0 };
 	auto inst_count { 0U };
 	while (inst_pnt < inst_mem.size()) {
 		auto inst = inst_mem.at(inst_pnt);
@@ -129,6 +129,7 @@ int repair_search(std::vector<Instruction> &inst_mem) {
 		max_count *= 2;
 		result = repair(inst_mem, max_count);
 	}
+	//fmt::print("{}\n",max_count);
 	return result.value();
 }
 
