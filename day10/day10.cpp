@@ -54,7 +54,7 @@ Big dfs(T const node, T const max, std::unordered_map<T, std::vector<T>> const &
 		return Big{1};
 	} else {
 		if (not paths.contains(node)) {
-			auto sum { 0ULL };
+			Big sum { 0 };
 			for (auto const el : dag.at(node)) {
 				sum += dfs(el, max, dag, paths);
 			}
@@ -85,7 +85,7 @@ auto part_1(int const max, std::unordered_set<T> const &set) {
 
 int main() {
 	auto const *const file_name = "build/input/input_10.txt";
-	using T = int;
+	using T = unsigned;
 	using Big = unsigned long long;
 	auto numbers = parse_input<T>(file_name);
 	auto max = *std::max_element(numbers.begin(), numbers.end());
@@ -97,7 +97,7 @@ int main() {
 	fmt::print("Part 1: {}\n", res1);
 	auto dag = parse_dag<T>(numbers, set);
 	std::unordered_map<T,Big> pathmap { };
-	auto paths = dfs(0, max + 3, dag, pathmap);
+	auto paths = dfs(T{0}, max + 3, dag, pathmap);
 	fmt::print("Part 2: {}\n", paths);
 	return EXIT_SUCCESS;
 }
