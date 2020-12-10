@@ -1,18 +1,11 @@
 #include <algorithm>
-#include <assert.h>
-#include <cmath>
-#include <deque>
 #include <fstream>
-#include <iostream>
-#include <map>
-#include <memory>
 #include <sstream>
 #include <string>
-#include <tuple>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 #include <fmt/printf.h>
+#include <unordered_map>
 
 template<class T>
 concept Integral = std::is_integral<T>::value;
@@ -36,32 +29,15 @@ std::vector<T> parse_input(char const *const file_name) {
 	}
 	return numbers;
 }
-/*
-auto bfs(void max, std::unordered_map<int, std::vector<int> > const &tree) {
-	std::deque<int> deq { };
-	deq.push_back(0);
-	auto paths { 0ULL };
-	while (!deq.empty()) {
-		auto front = deq.front();
-		deq.pop_front();
-		if (front == max + 3) {
-			paths++;
-		} else {
-			//fmt::print("{}\n",tree[front].size());
-			deq.insert(deq.end(), tree[front].begin(), tree[front].end());
-		}
-	}
-	return paths;
-}
-*/
-unsigned long long dfs(int node, int max, std::unordered_map<int, std::vector<int>>  &dag, std::unordered_map<int,unsigned long long>  &paths) {
+
+unsigned long long dfs(int const node, int const max, std::unordered_map<int, std::vector<int>> const &dag,
+		std::unordered_map<int, unsigned long long> &paths) {
 	if (node == max) {
 		return 1;
 	} else {
 		if (not paths.contains(node)) {
-
 			auto sum { 0ULL };
-			for (auto const el : dag[node]) {
+			for (auto const el : dag.at(node)) {
 				sum += dfs(el, max, dag, paths);
 			}
 			paths[node] = sum;
@@ -70,13 +46,7 @@ unsigned long long dfs(int node, int max, std::unordered_map<int, std::vector<in
 	}
 }
 
-int main() {
-	auto const *const file_name = "build/input/input_10.txt";
-	using T = int;
-	auto numbers = parse_input<T>(file_name);
-	std::unordered_set<int> set { };
-	set.insert(numbers.begin(), numbers.end());
-	auto max = *std::max_element(numbers.begin(), numbers.end());
+auto part_1(int const max, std::unordered_set<int> const &set) {
 	auto cur_jolt { 0 };
 	auto one_diff { 0 };
 	auto three_diff { 0 };
@@ -89,34 +59,46 @@ int main() {
 			three_diff++;
 		}
 	}
-	three_diff++;
-	fmt::print("Part 1: {}\n", one_diff * three_diff);
-	std::unordered_map<int, std::vector<int>> dag { };
-	numbers.push_back(max + 3);
-	numbers.push_back(0);
-	set.insert(max + 3);
-	std::sort(numbers.begin(), numbers.end());
+	return one_diff * three_diff;
+}
+
+std::unordered_map<int, std::vector<int> > parse_dag(std::vector<int> const &numbers, std::unordered_set<int> const &set) {
+	std::unordered_map<int, std::vector<int> > dag { };
 	for (auto jolt : numbers) {
 		if (set.contains(jolt + 1)) {
-			if (not dag.contains(jolt)) {
+			if (!dag.contains(jolt)) {
 				dag[jolt] = std::vector<int>();
 			}
 			dag[jolt].push_back(jolt + 1);
 		}
 		if (set.contains(jolt + 2)) {
-			if (not dag.contains(jolt)) {
+			if (!dag.contains(jolt)) {
 				dag[jolt] = std::vector<int>();
 			}
 			dag[jolt].push_back(jolt + 2);
 		}
 		if (set.contains(jolt + 3)) {
-			if (not dag.contains(jolt)) {
+			if (!dag.contains(jolt)) {
 				dag[jolt] = std::vector<int>();
 			}
 			dag[jolt].push_back(jolt + 3);
 		}
 	}
-	//auto paths = bfs(max, tree);
+	return dag;
+}
+
+int main() {
+	auto const *const file_name = "build/input/input_10.txt";
+	using T = int;
+	auto numbers = parse_input<T>(file_name);
+	auto max = *std::max_element(numbers.begin(), numbers.end());
+	numbers.push_back(max + 3);
+	numbers.push_back(0);
+	std::unordered_set<int> set { };
+	set.insert(numbers.begin(), numbers.end());
+	auto res1 = part_1(max, set);
+	fmt::print("Part 1: {}\n",res1 );
+	auto dag = parse_dag(numbers, set);
 	std::unordered_map<int, unsigned long long> pathmap { };
 	auto paths = dfs(0,max+3,dag,pathmap);
 	fmt::print("Part 2: {}\n", paths);
