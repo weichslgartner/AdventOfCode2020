@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include <fmt/printf.h>
+#include <string_view>
 #include <utility>
 
 enum class Op {
@@ -17,12 +18,14 @@ enum class Op {
 struct Instruction {
 	Op op;
 	int value;
+	auto operator<=>(const Instruction&) const = default;
+	/*
 	bool operator ==(Instruction &rhs) const {
 		return op == rhs.op and value == rhs.value;
-	}
+	}*/
 };
 
-Instruction parse_input_line(std::string_view in) {
+Instruction parse_input_line(std::string_view const in) {
 	std::string token;
 	std::stringstream ss;
 	ss << in;
@@ -124,7 +127,7 @@ std::optional<int> repair(std::vector<Instruction> &inst_mem, unsigned max_count
 
 int repair_search(std::vector<Instruction> &inst_mem) {
 	auto max_count { 100U };
-	auto result { repair(inst_mem, max_count) };
+	auto result = repair(inst_mem, max_count) ;
 	while (not result) {
 		max_count *= 2;
 		result = repair(inst_mem, max_count);
@@ -134,8 +137,7 @@ int repair_search(std::vector<Instruction> &inst_mem) {
 }
 
 void tests() {
-	Instruction
-	inst { .op = Op::JMP, .value = 3 };
+	Instruction	inst { .op = Op::JMP, .value = 3 };
 	assert(parse_input_line("jmp +3") == inst);
 	inst.op = Op::ACC;
 	inst.value = -3;

@@ -1,10 +1,15 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <span>
 #include <sstream>
 #include <string>
+#include <ranges>
+#include <utility>
+#include <numeric>
+#include <string_view>
 #include <vector>
 namespace ranges = std::ranges;
 
@@ -65,8 +70,8 @@ namespace ranges = std::ranges;
 
  bool check_eyr(std::string const &in) { return check_year(in, 2020, 2030); }
 
-bool check_field(std::string const &passport, std::string const &key,
-                 std::function<bool(std::string const &)> fun) {
+bool check_field(std::string const &passport, std::string_view key,
+                 std::function<bool(std::string const&)> const fun) {
   auto value_pos{passport.find(key)};
   auto key_len{key.size()};
   if (value_pos != std::string::npos) {

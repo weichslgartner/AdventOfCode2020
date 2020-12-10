@@ -17,7 +17,7 @@ template<Integral T>
 std::vector<T> parse_input(char const *const file_name) {
 	std::ifstream infile(file_name);
 	if (!infile.is_open()) {
-          fmt::print("Cannot open {}\n", file_name);
+          fmt::print(stderr,"Cannot open {}\n", file_name);
           return {};
 	}
 	std::string line;
@@ -32,6 +32,8 @@ std::vector<T> parse_input(char const *const file_name) {
 	}
 	return numbers;
 }
+
+
 template<Integral T>
 auto part_1(std::vector<T> const &numbers, T prelog_size) {
 	T target { 0 };
