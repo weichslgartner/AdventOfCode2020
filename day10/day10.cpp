@@ -1,3 +1,4 @@
+
 #include <algorithm>
 #include <fmt/core.h>
 #include <fstream>
@@ -6,29 +7,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include "common.h"
 
-template<class T>
-concept Integral = std::is_integral<T>::value;
-
-template<Integral T>
-std::vector<T> parse_input(char const *const file_name) {
-	std::ifstream infile(file_name);
-	if (!infile.is_open()) {
-		fmt::print(stderr, "Cannot open {}\n", file_name);
-		return {};
-	}
-	std::string line;
-	std::stringstream ss { };
-	ss << infile.rdbuf();
-	std::vector<T> numbers;
-	while (std::getline(ss, line)) {
-		T number;
-		std::stringstream convert { line };
-		convert >> number;
-		numbers.push_back(number);
-	}
-	return numbers;
-}
 
 template<Integral T>
 std::unordered_map<T, std::vector<T> > parse_dag(std::vector<T> const &numbers, std::unordered_set<T> const &set) {
@@ -80,10 +60,10 @@ auto part_1(T const max, std::unordered_set<T> const &set) {
 }
 
 int main() {
-	auto const *const file_name = "build/input/input_10.txt";
+	constexpr auto file_name = "build/input/input_10.txt";
 	using T = unsigned;
 	using Big = unsigned long long;
-	auto numbers = parse_input<T>(file_name);
+	auto numbers = AOC::parse_input<T>(file_name);
 	auto max = *std::max_element(numbers.begin(), numbers.end());
 	numbers.push_back(max + 3);
 	numbers.push_back(0);
