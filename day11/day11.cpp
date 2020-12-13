@@ -1,5 +1,6 @@
 #include "common.h"
 #include <algorithm>
+#include <concepts>
 #include <fmt/core.h>
 #include <fstream>
 #include <sstream>
@@ -82,10 +83,10 @@ void print_grid(std::vector<std::vector<char>> const &grid) {
 
 }
 
-int apply_rules(std::vector<std::vector<char>> &grid, std::vector<std::vector<char>> &next, bool part1) {
-	int occ_overall { 0 };
+auto apply_rules(std::vector<std::vector<char>> &grid, std::vector<std::vector<char>> &next, bool part1) {
+	auto occ_overall { 0U };
 	std::vector<char> neighbours { };
-	int condition { 4 };
+	auto condition { 4 };
 	if (not part1) {
 		condition = 5;
 	}
@@ -120,18 +121,18 @@ int apply_rules(std::vector<std::vector<char>> &grid, std::vector<std::vector<ch
 				break;
 			}
 			next[y][x] = nex_state;
-
 		}
 	}
 	return occ_overall;
 }
 
-auto run_til_stable(std::vector<std::vector<char>> &grid, bool part1) {
+auto run_til_stable(std::vector<std::vector<char>> &grid, bool const part1) {
 	auto occ_ov { 0 };
 	auto next = grid;
-	int i { 0 };
+	auto i { 0 };
 	while (i == 0 || next != grid) {
-		grid = next;
+		//grid = next;
+		std::ranges::swap(grid, next);
 		occ_ov = apply_rules(grid, next, part1);
 		i++;
 	}
