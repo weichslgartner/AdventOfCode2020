@@ -1,15 +1,9 @@
 #include "common.h"
 #include <algorithm>
 #include <numeric>
-#include <cassert>
-#include <deque>
 #include <fstream>
-#include <functional>
-#include <iostream>
-#include <map>
 #include <sstream>
 #include <string>
-#include <tuple>
 #include <vector>
 #include <cstdint>
 #include <unordered_map>
@@ -47,14 +41,10 @@ inline static std::vector<Instruction> parse_input(char const *file_name) {
 			convert >> token; //=
 			convert >> token;
 			auto and_mask = token;
-			//fmt::print("{}\n", token);
-			//fmt::print("{}\n", token);
 			cur_inst.raw_mask = token;
 			std::replace(token.begin(), token.end(), 'X', '0');
-
 			cur_inst.or_mask = static_cast<u_int64_t>(std::stoull(token, nullptr, 2));
 			std::replace(and_mask.begin(), and_mask.end(), 'X', '1');
-
 			cur_inst.and_mask = static_cast<u_int64_t>(std::stoull(and_mask, nullptr, 2));
 		} else {
 			cur_inst.op = OP::MEM;
@@ -62,14 +52,12 @@ inline static std::vector<Instruction> parse_input(char const *file_name) {
 			convert >> token; //=
 			convert >> cur_inst.value;
 		}
-		//fmt::print("{} {} {} {:36b}  {:36b}\n", cur_inst.op,   cur_inst.adress, cur_inst.value, cur_inst.or_mask,cur_inst.and_mask);
 		instructs.push_back(cur_inst);
-
 	}
 	return instructs;
 }
 
-uint64_t part1(std::vector<Instruction> &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
+uint64_t part1(std::vector<Instruction> const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
 	uint64_t cur_bitmask_or { };
 	uint64_t cur_bitmask_and { };
 	for (auto const &inst : instructs) {
@@ -77,7 +65,6 @@ uint64_t part1(std::vector<Instruction> &instructs, std::unordered_map<u_int64_t
 			cur_bitmask_or = inst.or_mask;
 			cur_bitmask_and = inst.and_mask;
 		} else {
-			//fmt::print("write {} to {}\n", (inst.value | cur_bitmask_or)&cur_bitmask_and ,inst.adress );
 			memory[inst.adress] = (inst.value | cur_bitmask_or) & cur_bitmask_and & 0xFFFFFFFFF;
 		}
 	}
@@ -96,7 +83,7 @@ constexpr uint64_t clear_bit(uint64_t dest, uint64_t const position) {
 	return dest & 0xFFFFFFFFF;
 }
 
-uint64_t part2(std::vector<Instruction, std::allocator<Instruction> > const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
+uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
 	uint64_t cur_bitmask_or { };
 	std::string raw_mask;
 	size_t occ { };
@@ -116,7 +103,7 @@ uint64_t part2(std::vector<Instruction, std::allocator<Instruction> > const &ins
 			auto adress = inst.adress | cur_bitmask_or;
 			for (auto bin { 0ULL }; bin < (1ULL << (occ)); ++bin) {
 				for (auto i { 0ULL }; i < occ; ++i) {
-					auto const shifted = (1ULL << (occ - 1 - i));
+					auto const shifted = (1 << (occ - 1 - i));
 					auto const bit = bin & shifted; //bin & (1<<(occ-1-i));
 					if (bit) {
 						adress = set_bit(adress, positions.at(i) - 1);
