@@ -93,7 +93,7 @@ auto apply_rules(std::vector<std::vector<char>> &grid, std::vector<std::vector<c
 	for (int y { 0 }; y < grid.size(); ++y) {
 		for (int x { 0 }; x < grid.at(y).size(); ++x) {
 			Point const p { x, y };
-			auto const cur_state = grid.at(y).at(x);
+			auto const cur_state = grid[y][x];
 			auto nex_state = cur_state;
 
 			if (part1) {
@@ -130,7 +130,7 @@ auto run_til_stable(std::vector<std::vector<char>> &grid, bool const part1) {
 	auto occ_ov { 0 };
 	auto next = grid;
 	auto i { 0 };
-	while (i == 0 || next != grid) {
+	while (i == 0 or next != grid) {
 		//grid = next;
 		std::ranges::swap(grid, next);
 		occ_ov = apply_rules(grid, next, part1);

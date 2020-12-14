@@ -91,17 +91,18 @@ int_type inverse(int_type a, int_type b){
 
 int_type inv(long long a, long long  b)
 {
-	long long  b0 = b, t, quotient;
+	long long b0 = b;
+	long long		temp { }, quotient;
 	long long  x0 = 0, x1 = 1;
 	if (b == 1) return 1;
 	while (a > 1) {
 		quotient = a / b;
-		t = b;
+		temp = b;
 		b = a % b; // remainder
-		a = t;
-		t = x0;
+		a = temp;
+		temp = x0;
 		x0 = x1 - quotient * x0; 
-		x1 = t;
+		x1 = temp;
 	}
 	if (x1 < 0) x1 += b0;
 	return x1;
@@ -115,7 +116,7 @@ int main() {
 	//print_grid(grid);
 	auto cur_time = numbers.front();
 	numbers.erase(numbers.begin());
-	//fmt::print("Part 1: {}\n", part_1(numbers,cur_time));
+	fmt::print("Part 1: {}\n", part_1(numbers,cur_time));
 	//assert(numbers.size()==positions.size());
 	auto max_id = std::max_element(numbers.begin(), numbers.end());
 	auto idx = max_id - numbers.begin();
@@ -125,14 +126,13 @@ int main() {
 		auto offset = positions[index];
 
 		//fmt::print("opt.add((x1+{})%{}==0)\n", offset, id);
-		fmt::print("x = {} mod {}\n",(id*4-offset) %id, id);
+		//fmt::print("x = {} mod {}\n",(id*4-offset) %id, id);
 		factors.push_back((id*4-offset) %id);
 		index++;
 	}
 	auto M = std::accumulate(numbers.begin(), numbers.end(),  1ULL, std::multiplies<int_type>());
 	std::vector<int_type> m;
-	std::vector<int_type> q;
-	fmt::print("{}\n",M);
+	//fmt::print("{}\n",M);
 	std::transform(numbers.begin(), numbers.end(),std::back_inserter(m),[M](auto x){return M/x;});
 	auto result{0ULL};
 	for(auto i{0};i<numbers.size();++i){
@@ -140,9 +140,9 @@ int main() {
 		auto n_ = numbers[i];
 		auto res = inv(m_,n_);
 		result += factors[i]*res*m[i] ;
-		//result %= M;
+		result %= M;
 	}
-	fmt::print("Part 2: {}\n",result%M);
+	fmt::print("Part 2: {}\n",result);
 
 	// 760653049054623 too low
 	//
