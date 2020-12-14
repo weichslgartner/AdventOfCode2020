@@ -90,20 +90,19 @@ constexpr uint64_t clear_bit(uint64_t dest, uint64_t const position) {
 }
 
 uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
-	uint64_t cur_bitmask_or { };
-	std::string raw_mask;
+	uint64_t cur_bitmask_or { };;
 	size_t occ { };
 	std::vector<uint64_t> positions;
 	for (auto const &inst : instructs) {
 		if (inst.op == OP::MASK) {
 			cur_bitmask_or = inst.or_mask;
-			raw_mask = inst.raw_mask;
-			occ = std::count(raw_mask.begin(), raw_mask.end(), 'X');
+			//raw_mask = inst.raw_mask;
+			occ = std::count(inst.raw_mask.begin(), inst.raw_mask.end(), 'X');
 			positions.clear();
-			auto pos = raw_mask.find('X');
+			auto pos = inst.raw_mask.find('X');
 			while (pos != std::string::npos) {
-				positions.push_back(raw_mask.size() - pos);
-				pos = raw_mask.find('X', pos + 1);
+				positions.push_back(inst.raw_mask.size() - pos);
+				pos = inst.raw_mask.find('X', pos + 1);
 			}
 		} else {
 			auto address = inst.address | cur_bitmask_or;
