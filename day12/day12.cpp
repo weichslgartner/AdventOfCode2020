@@ -36,10 +36,8 @@ std::vector<NavInst> parse_instructions(char const *file_name) {
 Point card2coord(Cardinals const card) {
 	switch (card) {
 	case Cardinals::EAST:
-
 		return Point { 1, 0 };
 	case Cardinals::WEST:
-
 		return Point { -1, 0 };
 	case Cardinals::SOUTH:
 		return Point { 0, -1 };
@@ -69,7 +67,6 @@ Point& move(Point &point, char const action, Cardinals const card, int const dis
 	case 'W':
 		next = card2coord(Cardinals::WEST);
 		break;
-
 	default:
 		break;
 	}
