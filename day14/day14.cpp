@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+constexpr auto BITMASK_36BIT = 0xFFFFFFFFF;
+
 enum class OP {
 	MASK, MEM
 };
@@ -17,7 +19,7 @@ struct Instruction {
 	u_int64_t or_mask;
 	u_int64_t and_mask;
 	std::string raw_mask;
-	u_int64_t adress;
+	u_int64_t address;
 	u_int64_t value;
 };
 
@@ -48,13 +50,19 @@ inline static std::vector<Instruction> parse_input(char const *file_name) {
 			cur_inst.and_mask = static_cast<u_int64_t>(std::stoull(and_mask, nullptr, 2));
 		} else {
 			cur_inst.op = OP::MEM;
-			cur_inst.adress = std::stoull(token.substr(4));
+			cur_inst.address = std::stoull(token.substr(4));
 			convert >> token; //=
 			convert >> cur_inst.value;
 		}
 		instructs.push_back(cur_inst);
 	}
 	return instructs;
+}
+
+auto memory_sum(std::unordered_map<u_int64_t, u_int64_t> &memory) {
+	return std::accumulate(memory.begin(), memory.end(), 0ULL, [](const auto previous, const auto &element) {
+		return previous + element.second;
+	});
 }
 
 uint64_t part1(std::vector<Instruction> const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
@@ -65,22 +73,20 @@ uint64_t part1(std::vector<Instruction> const &instructs, std::unordered_map<u_i
 			cur_bitmask_or = inst.or_mask;
 			cur_bitmask_and = inst.and_mask;
 		} else {
-			memory[inst.adress] = (inst.value | cur_bitmask_or) & cur_bitmask_and & 0xFFFFFFFFF;
+			memory[inst.address] = (inst.value | cur_bitmask_or) & cur_bitmask_and & BITMASK_36BIT;
 		}
 	}
-	return std::accumulate(memory.begin(), memory.end(), 0ULL, [](const std::size_t previous, const auto &element) {
-		return previous + element.second;
-	});
+	return memory_sum(memory);
 }
 
 constexpr uint64_t set_bit(uint64_t dest, uint64_t const position) {
 	dest |= 1ULL << position;
-	return dest & 0xFFFFFFFFF;
+	return dest & BITMASK_36BIT;
 }
 
 constexpr uint64_t clear_bit(uint64_t dest, uint64_t const position) {
 	dest &= ~(1ULL << position);
-	return dest & 0xFFFFFFFFF;
+	return dest & BITMASK_36BIT;
 }
 
 uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
@@ -100,34 +106,31 @@ uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_i
 				pos = raw_mask.find('X', pos + 1);
 			}
 		} else {
-			auto adress = inst.adress | cur_bitmask_or;
+			auto address = inst.address | cur_bitmask_or;
 			for (auto bin { 0ULL }; bin < (1ULL << (occ)); ++bin) {
 				for (auto i { 0ULL }; i < occ; ++i) {
 					auto const shifted = (1 << (occ - 1 - i));
-					auto const bit = bin & shifted; //bin & (1<<(occ-1-i));
-					if (bit) {
-						adress = set_bit(adress, positions.at(i) - 1);
+					if (bin & shifted) {
+						address = set_bit(address, positions.at(i) - 1);
 					} else {
-						adress = clear_bit(adress, positions.at(i) - 1);
+						address = clear_bit(address, positions.at(i) - 1);
 					}
 				}
-				memory[adress] = inst.value;
+				memory[address] = inst.value;
 			}
 		}
 	}
-	return std::accumulate(memory.begin(), memory.end(), 0ULL, [](const auto previous, const auto &element) {
-		return previous + element.second;
-	});
+	return memory_sum(memory);
 }
 
 int main() {
 	constexpr auto file_name = "build/input/input_14.txt";
 	auto instructs = parse_input(file_name);
 	std::unordered_map<u_int64_t, u_int64_t> memory;
-	auto sum = part1(instructs,memory);
-	fmt::print("Part 1: {}\n",sum);
+	auto sum = part1(instructs, memory);
+	fmt::print("Part 1: {}\n", sum);
 	memory.clear();
-	sum =  part2(instructs, memory);
-	fmt::print("Part 2: {}\n",sum);
+	sum = part2(instructs, memory);
+	fmt::print("Part 2: {}\n", sum);
 	return 0;
 }
