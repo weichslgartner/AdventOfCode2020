@@ -91,7 +91,7 @@ constexpr uint64_t clear_bit(uint64_t dest, uint64_t const position) {
 
 uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_int64_t, u_int64_t> &memory) {
 	uint64_t cur_bitmask_or { };;
-	size_t occ { };
+	auto occ {0U};
 	std::vector<uint64_t> positions;
 	for (auto const &inst : instructs) {
 		if (inst.op == OP::MASK) {
