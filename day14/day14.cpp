@@ -1,6 +1,6 @@
-#include "common.h"
 #include <algorithm>
 #include <numeric>
+#include <fmt/core.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -96,7 +96,6 @@ uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_i
 	for (auto const &inst : instructs) {
 		if (inst.op == OP::MASK) {
 			cur_bitmask_or = inst.or_mask;
-			//raw_mask = inst.raw_mask;
 			occ = std::count(inst.raw_mask.begin(), inst.raw_mask.end(), 'X');
 			positions.clear();
 			auto pos = inst.raw_mask.find('X');
@@ -124,7 +123,7 @@ uint64_t part2(std::vector<Instruction> const &instructs, std::unordered_map<u_i
 
 int main() {
 	constexpr auto file_name = "build/input/input_14.txt";
-	auto instructs = parse_input(file_name);
+	auto const instructs = parse_input(file_name);
 	std::unordered_map<u_int64_t, u_int64_t> memory;
 	auto sum = part1(instructs, memory);
 	fmt::print("Part 1: {}\n", sum);
