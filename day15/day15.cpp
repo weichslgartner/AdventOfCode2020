@@ -1,9 +1,18 @@
 #include <fmt/core.h>
 #include <deque>
 #include <unordered_map>
+#include "absl/container/flat_hash_map.h"
+//#include "folly/container/F14Map.h"
+
+
+using hash_map = std::unordered_map<int, int>;
+//using hash_map = absl::flat_hash_map<int, int>;
+//using hash_map = folly::F14FastMap<int, int>;
+
 
 auto solve(std::deque<int> init_numbers, int const bound) {
-	std::unordered_map<int, int> memory;
+	hash_map memory { };
+	memory.reserve(bound/4);
 	auto current_number { 0 };
 	auto last_number { -1 };
 	for (auto i { 1 }; i <= bound; ++i) {
@@ -14,11 +23,10 @@ auto solve(std::deque<int> init_numbers, int const bound) {
 			if (!memory.contains(last_number)) {
 				current_number = 0;
 			} else {
-				auto last_time = memory[last_number];
-				current_number = i - 1 - last_time;
+				current_number = i - 1 - memory[last_number];
 			}
 		}
-		//fmt::print("{}: {}\n", i, current_number);
+		//fmt::print("{}, {}\n", i, current_number);
 		if (memory.contains(last_number)) {
 			memory.at(last_number) = i - 1;
 		} else {
