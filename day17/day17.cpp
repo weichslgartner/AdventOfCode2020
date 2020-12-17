@@ -21,12 +21,12 @@ struct Borders {
 	int x_max;
 };
 
-std::vector<Point4D> get_neighbours(Point4D const &p, int const distance, bool part2) {
-	std::vector<Point4D> neighbors;
+std::vector<Point4D> get_neighbours(Point4D const &p, int const distance, bool const part2) {
+	std::vector<Point4D> neighbors { };
+	neighbors.reserve(36);
 	Point4D next { };
 	auto w_min { 0 };
 	auto w_max { 0 };
-
 	if (part2) {
 		w_min = -distance;
 		w_max = distance;
@@ -39,12 +39,10 @@ std::vector<Point4D> get_neighbours(Point4D const &p, int const distance, bool p
 					next.z = p.z + z;
 					next.y = p.y + y;
 					next.x = p.x + x;
-					if (p.manhattan_distance(next) != 0) {
+					if (p != next) {
 						neighbors.push_back(next);
 					}
-
 				}
-
 			}
 		}
 	}
@@ -52,17 +50,17 @@ std::vector<Point4D> get_neighbours(Point4D const &p, int const distance, bool p
 }
 
 template<class T>
-auto get_number_active(std::vector<T> &neighbors, std::unordered_set<T> &space_map) {
+auto get_number_active(std::vector<T> &neighbors, std::unordered_set<T> &space_set) {
 	auto active { 0U };
 	for (auto const neighbor : neighbors) {
-		if (space_map.contains(neighbor)) {
+		if (space_set.contains(neighbor)) {
 			active++;
 		}
 	}
 	return active;
 }
 
-void adapt_borders(int x, int y, int z, int w, Borders &border) {
+constexpr void adapt_borders(int const x, int const y, int const z, int const w, Borders &border) {
 	if (w < border.w_min) {
 		border.w_min = w;
 	}
@@ -150,8 +148,8 @@ auto run_simulation(Borders border, std::unordered_set<Point4D> space_map, bool 
 	return active_cnt;
 }
 
-std::unordered_set<Point4D> create_space_map(std::vector<std::vector<char>> const &grid, Borders &border) {
-	std::unordered_set<Point4D> space_map { };
+std::unordered_set<Point4D> create_space_set(std::vector<std::vector<char>> const &grid, Borders &border) {
+	std::unordered_set<Point4D> space_set { };
 	//space_map.reserve();
 	auto y { 0 };
 	auto x { 0 };
@@ -161,24 +159,24 @@ std::unordered_set<Point4D> create_space_map(std::vector<std::vector<char>> cons
 		x = 0;
 		for (auto const c : line) {
 			if (c == ACTIVE) {
-				space_map.emplace(Point4D { x, y, z, w });
+				space_set.emplace(Point4D { x, y, z, w });
 			}
 			adapt_borders(x, y, z, w, border);
 			x++;
 		}
 		y++;
 	}
-	return space_map;
+	return space_set;
 }
 
 int main() {
 	constexpr auto file_name = "build/input/input_17.txt";
 	auto grid = AOC::parse_grid<char>(file_name);
 	Borders border { };
-	auto space_map = create_space_map(grid, border);
-	auto part1 = run_simulation(border, space_map, false);
+	auto space_set = create_space_set(grid, border);
+	auto part1 = run_simulation(border, space_set, false);
 	fmt::print("Part 1: {}\n", part1);
-	auto part2 = run_simulation(border, space_map, true);
+	auto part2 = run_simulation(border, space_set, true);
 	fmt::print("Part 2: {}\n", part2);
 	return EXIT_SUCCESS;
 }
