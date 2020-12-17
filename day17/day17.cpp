@@ -137,7 +137,7 @@ auto apply_rules(Borders &border, Borders &next_borders, std::unordered_set<Poin
 	return active_cnt;
 }
 
-auto run_til_stable(Borders border, std::unordered_set<Point4D> space_map, bool part2, int iterations = 6) {
+auto run_simulation(Borders border, std::unordered_set<Point4D> space_map, bool part2, int iterations = 6) {
 	auto active_cnt { 0 };
 	auto next = space_map;
 	Borders next_borders = border;
@@ -176,9 +176,9 @@ int main() {
 	auto grid = AOC::parse_grid<char>(file_name);
 	Borders border { };
 	auto space_map = create_space_map(grid, border);
-	auto part1 = run_til_stable(border, space_map, false);
+	auto part1 = run_simulation(border, space_map, false);
 	fmt::print("Part 1: {}\n", part1);
-	auto part2 = run_til_stable(border, space_map, true);
+	auto part2 = run_simulation(border, space_map, true);
 	fmt::print("Part 2: {}\n", part2);
 	return EXIT_SUCCESS;
 }
