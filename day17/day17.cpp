@@ -10,6 +10,8 @@
 #include <cassert>
 
 #include <array>
+#include <unordered_set>
+#include <utility>
 
 namespace ranges = std::ranges;
 constexpr auto ACTIVE { '#' };
@@ -26,10 +28,17 @@ struct Borders {
 	int x_max;
 };
 
-std::vector<Point4D> get_neighbours(Point4D const &p, int const distance) {
+std::vector<Point4D> get_neighbours(Point4D const &p, int const distance, bool part2) {
 	std::vector<Point4D> neighbors;
 	Point4D next { };
-	for (int w { -distance }; w <= distance; w++) {
+	auto w_min { 0 };
+	auto w_max { 0 };
+
+	if (part2) {
+		w_min = -distance;
+		w_max = distance;
+	}
+	for (int w { w_min }; w <= w_max; w++) {
 		for (int z { -distance }; z <= distance; z++) {
 			for (int y { -distance }; y <= distance; y++) {
 				for (int x { -distance }; x <= distance; x++) {
@@ -50,17 +59,17 @@ std::vector<Point4D> get_neighbours(Point4D const &p, int const distance) {
 }
 
 template<class T>
-auto get_number_active(std::vector<T> &neighbors, std::unordered_map<T, char> &space_map) {
+auto get_number_active(std::vector<T> &neighbors, std::unordered_set<T> &space_map) {
 	auto active { 0U };
 	for (auto const neighbor : neighbors) {
-		if (space_map.contains(neighbor) and space_map[neighbor] == ACTIVE) {
+		if (space_map.contains(neighbor)) {
 			active++;
 		}
 	}
 	return active;
 }
 
-void adapt_borders(int x, int y,int z, int w,  Borders &border) {
+void adapt_borders(int x, int y, int z, int w, Borders &border) {
 	if (w < border.w_min) {
 		border.w_min = w;
 	}
@@ -87,7 +96,7 @@ void adapt_borders(int x, int y,int z, int w,  Borders &border) {
 	}
 }
 
-void print_grid(Borders &border, std::unordered_map<Point4D, char> &space_map) {
+void print_grid(Borders &border, std::unordered_set<Point4D> &space_map) {
 	for (int w { border.w_min - 1 }; w <= border.w_max + 1; ++w) {
 		for (int z { border.z_min - 1 }; z <= border.z_max + 1; ++z) {
 			fmt::print("z={} w={}\n", z, w);
@@ -107,21 +116,25 @@ void print_grid(Borders &border, std::unordered_map<Point4D, char> &space_map) {
 	}
 }
 
-auto apply_rules(Borders &border, Borders &next_borders, std::unordered_map<Point4D, char> &space_map, std::unordered_map<Point4D, char> &next) {
+auto apply_rules(Borders &border, Borders &next_borders, std::unordered_set<Point4D> &space_map, std::unordered_set<Point4D> &next, bool part2) {
 	auto active_cnt { 0U };
+	auto w_min { 0 };
+	auto w_max { 0 };
+	if (part2) {
+		w_min = border.w_min - 1;
+		w_max = border.w_max + 1;
+	}
 	for (int w { border.w_min - 1 }; w <= border.w_max + 1; ++w) {
 		for (int z { border.z_min - 1 }; z <= border.z_max + 1; ++z) {
 			for (int y { border.y_min - 1 }; y <= border.y_max + 1; ++y) {
 				for (int x { border.x_min - 1 }; x <= border.x_max + 1; ++x) {
 					Point4D const p { x, y, z, w };
-					auto neighbors = get_neighbours(p, 1);
-					auto active = get_number_active(neighbors, space_map);
-					//fmt::print("{} {} {}", z, y, x);
-					//fmt::print("neighbor_size: {} active {}\n", neighbors.size(), active);
+					auto neighbors = get_neighbours(p, 1, part2);
+					auto const active = get_number_active(neighbors, space_map);
 					if ((space_map.contains(p) and active == 2) or active == 3) {
-						next[p] = ACTIVE;
+						next.insert(std::move(p));
 						active_cnt++;
-						adapt_borders(x, y,z,w, next_borders);
+						adapt_borders(x, y, z, w, next_borders);
 					}
 
 				}
@@ -131,31 +144,22 @@ auto apply_rules(Borders &border, Borders &next_borders, std::unordered_map<Poin
 	return active_cnt;
 }
 
-auto run_til_stable(Borders &border, std::unordered_map<Point4D, char> &space_map) {
-	auto occ_ov { 0 };
+auto run_til_stable(Borders border, std::unordered_set<Point4D> space_map, bool part2, int iterations = 6) {
+	auto active_cnt { 0 };
 	auto next = space_map;
 	Borders next_borders = border;
-	auto i { 0 };
-	while (i < 6) {
-		//grid = next;
-		fmt::print("iteration {}\n", i);
+	for (int i { 0 }; i < iterations; ++i) {
 		std::ranges::swap(space_map, next);
-		border = next_borders;
-		print_grid(border, space_map);
+		std::swap(border, next_borders);
 		next.clear();
-		occ_ov = apply_rules(border, next_borders, space_map, next);
-		i++;
+		active_cnt = apply_rules(border, next_borders, space_map, next, part2);
 	}
-	return occ_ov;
+	return active_cnt;
 }
 
-int main() {
-	constexpr auto file_name = "build/input/input_17.txt";
-	auto grid = AOC::parse_grid<char>(file_name);
-	//print_grid(grid);
-	//print_grid(grid);
-	Borders border { };
-	std::unordered_map<Point4D, char> space_map { };
+std::unordered_set<Point4D> create_space_map(std::vector<std::vector<char>> const &grid, Borders &border) {
+	std::unordered_set<Point4D> space_map { };
+	space_map.reserve(400);
 	auto y { 0 };
 	auto x { 0 };
 	auto z { 0 };
@@ -164,19 +168,24 @@ int main() {
 		x = 0;
 		for (auto const c : line) {
 			if (c == ACTIVE) {
-				Point4D p { x, y, z,w };
-				space_map.insert( { p, ACTIVE });
+				space_map.emplace(Point4D { x, y, z, w });
 			}
-			fmt::print("{}", c);
-			adapt_borders( x, y,z,w, border);
+			adapt_borders(x, y, z, w, border);
 			x++;
 		}
-		fmt::print("\n");
 		y++;
 	}
-	auto part1 = run_til_stable(border, space_map);
+	return space_map;
+}
+
+int main() {
+	constexpr auto file_name = "build/input/input_17.txt";
+	auto grid = AOC::parse_grid<char>(file_name);
+	Borders border { };
+	auto space_map = create_space_map(grid, border);
+	auto part1 = run_til_stable(border, space_map, false);
 	fmt::print("Part 1: {}\n", part1);
-	//occ_ov = run_til_stable(grid, false);
-	fmt::print("Part 2: {}\n", 0);
+	auto part2 = run_til_stable(border, space_map, true);
+	fmt::print("Part 2: {}\n", part2);
 	return EXIT_SUCCESS;
 }
