@@ -1,15 +1,8 @@
 #include "common.h"
-#include <algorithm>
 #include <concepts>
 #include <fmt/core.h>
-#include <fstream>
-#include <sstream>
-#include <string>
 #include <vector>
 #include <ranges>
-#include <cassert>
-
-#include <array>
 #include <unordered_set>
 #include <utility>
 
@@ -159,7 +152,7 @@ auto run_til_stable(Borders border, std::unordered_set<Point4D> space_map, bool 
 
 std::unordered_set<Point4D> create_space_map(std::vector<std::vector<char>> const &grid, Borders &border) {
 	std::unordered_set<Point4D> space_map { };
-	space_map.reserve(400);
+	//space_map.reserve();
 	auto y { 0 };
 	auto x { 0 };
 	auto z { 0 };
