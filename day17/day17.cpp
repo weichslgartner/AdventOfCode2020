@@ -87,7 +87,7 @@ constexpr void adapt_borders(int const x, int const y, int const z, int const w,
 	}
 }
 
-void print_grid(Borders &border, std::unordered_set<Point4D> &space_map) {
+void print_grid(Borders &border, std::unordered_set<Point4D> const &space_map) {
 	for (int w { border.w_min - 1 }; w <= border.w_max + 1; ++w) {
 		for (int z { border.z_min - 1 }; z <= border.z_max + 1; ++z) {
 			fmt::print("z={} w={}\n", z, w);
@@ -141,8 +141,11 @@ auto run_simulation(Borders border, std::unordered_set<Point4D> space_map, bool 
 	Borders next_borders = border;
 	for (int i { 0 }; i < iterations; ++i) {
 		std::ranges::swap(space_map, next);
+
 		std::swap(border, next_borders);
 		next.clear();
+		//fmt::print("Iteration: {}\n", i);
+		//print_grid(border,space_map);
 		active_cnt = apply_rules(border, next_borders, space_map, next, part2);
 	}
 	return active_cnt;
@@ -171,9 +174,9 @@ std::unordered_set<Point4D> create_space_set(std::vector<std::vector<char>> cons
 
 int main() {
 	constexpr auto file_name = "build/input/input_17.txt";
-	auto grid = AOC::parse_grid<char>(file_name);
+	auto const grid = AOC::parse_grid<char>(file_name);
 	Borders border { };
-	auto space_set = create_space_set(grid, border);
+	auto const space_set = create_space_set(grid, border);
 	auto part1 = run_simulation(border, space_set, false);
 	fmt::print("Part 1: {}\n", part1);
 	auto part2 = run_simulation(border, space_set, true);
