@@ -12,7 +12,7 @@ using hash_map = std::unordered_map<int, int>;
 
 auto solve(std::deque<int> init_numbers, int const bound) {
 	hash_map memory { };
-	memory.reserve(bound/4);
+	memory.reserve(bound/8);
 	auto current_number { 0 };
 	auto last_number { -1 };
 	for (auto i { 1 }; i <= bound; ++i) {
@@ -34,11 +34,12 @@ auto solve(std::deque<int> init_numbers, int const bound) {
 		}
 		last_number = current_number;
 	}
+	//fmt::print( "hashmap size {}\n", memory.size());
 	return current_number;
 }
 
 int main() {
-	std::deque<int> init_numbers { 6, 13, 1, 15, 2, 0 };
+	std::deque<int> const init_numbers { 6, 13, 1, 15, 2, 0 };
 	//std::deque<int> init_numbers{0,3,6};
 	auto res = solve(init_numbers, 2020);
 	fmt::print("Part 1: {}\n", res);
