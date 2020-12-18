@@ -37,21 +37,17 @@ int64_t solve(std::string_view const input, bool const part2) {
 			int64_t const temp = static_cast<int64_t>(c - '0');
 			if (last_op == OP::UNDEF) {
 				res = temp;
-			} else {
+			} else if (last_op == OP::MULT) {
 				if (part2) {
-					if (last_op == OP::MULT) {
-						save_mults.push_back(res);
-						res = temp;
-					} else if (last_op == OP::ADD) {
-						res += temp;
-					}
+					save_mults.push_back(res);
+					res = temp;
 				} else {
-					if (last_op == OP::MULT) {
-						res *= temp;
-					} else if (last_op == OP::ADD) {
-						res += temp;
-					}
+					res *= temp;
 				}
+			} else if (last_op == OP::ADD) {
+				res += temp;
+			} else {
+				fmt::print(stderr, "Operation error\n");
 			}
 		} else if (c == '*') {
 			last_op = OP::MULT;
@@ -74,8 +70,7 @@ int64_t solve(std::string_view const input, bool const part2) {
 					res = old_expr.numb + res;
 				}
 				save_mults.insert(save_mults.end(), old_expr.save_mults.begin(), old_expr.save_mults.end());
-			}
-			else {
+			} else {
 				if (old_expr.op == OP::MULT) {
 					res = old_expr.numb * res;
 				} else {
@@ -91,7 +86,6 @@ int64_t solve(std::string_view const input, bool const part2) {
 }
 
 void tests() {
-	//auto const grid = AOC::parse_grid<char>(file_name);
 	auto test6 = "1 + (2 * 3) + (4 * (5 + 6))";
 	auto test = "1 + 2 * 3 + 4 * 5 + 6";
 	auto test2 = "2 * 3 + (4 * 5)";
