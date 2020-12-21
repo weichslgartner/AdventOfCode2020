@@ -34,7 +34,8 @@ auto parse_input(std::vector<std::string> const &lines) {
 				ingredient_buffer.push_back(token);
 				all_ingredients.push_back(token);
 			} else {
-				allergenes.insert(token.substr(0, token.size() - 1));
+				token.pop_back(); //remove , or )
+				allergenes.insert(token);
 			}
 		}
 		for (auto const &allergene : allergenes) {
@@ -68,13 +69,10 @@ auto find_possible_allergenes(auto const &allergense2ingrediens) {
 }
 
 auto count_allergene_free(auto const &all_ingredients, auto const &possible_allergenes) {
-	auto cnt { 0U };
-	for (auto const &ing : all_ingredients) {
-		if (not possible_allergenes.contains(ing)) {
-			cnt++;
-		}
-	}
-	return cnt;
+	return ranges::count_if(all_ingredients, [&possible_allergenes](auto const &ing) {
+		return not possible_allergenes.contains(ing);
+	});
+
 }
 
 auto& find_allergne_mapping(auto &allergense2ingrediens) {
