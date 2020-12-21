@@ -86,12 +86,12 @@ int64_t solve(std::string_view const input, bool const part2) {
 }
 
 void tests() {
-	auto test6 = "1 + (2 * 3) + (4 * (5 + 6))";
 	auto test = "1 + 2 * 3 + 4 * 5 + 6";
 	auto test2 = "2 * 3 + (4 * 5)";
 	auto test3 = "5 + (8 * 3 + 9 + 3 * 4 * 3)";
 	auto test4 = "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))";
 	auto test5 = "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2";
+	auto test6 = "1 + (2 * 3) + (4 * (5 + 6))";
 	auto test7 = "5 + (8 * 3 + 9 + 3 * 4 * 3)";
 	auto test8 = "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))";
 	auto test9 = "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2";
@@ -104,7 +104,6 @@ void tests() {
 	assert(solve(test5, false) == 13632);
 	assert(solve(test, true) == 231);
 	assert(solve(test6, true) == 51);
-	assert(solve(test7, true) == 1445);
 	assert(solve(test7, true) == 1445);
 	assert(solve(test8, true) == 669060);
 	assert(solve(test9, true) == 23340);
