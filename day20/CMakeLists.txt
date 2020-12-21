@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(day21)
+project(day20)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 file(GLOB SOURCES *.cpp)
 # add the executable

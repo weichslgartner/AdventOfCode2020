@@ -88,7 +88,7 @@ auto part1(auto const &id2edges, auto const &edges2id) {
 
 int main() {
 //tests();
-	constexpr auto file_name = "build/input/input_21.txt";
+	constexpr auto file_name = "build/input/input_20.txt";
 	auto lines = AOC::parse_lines(file_name);
 	lines.push_back("");
 	auto [id2edges, edges2id] = parse_input(lines);
