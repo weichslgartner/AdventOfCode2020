@@ -1,66 +1,27 @@
 #include "common.h"
-
 #include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <cstdint>
 #include <deque>
 #include <fmt/core.h>
-#include <string_view>
 #include <vector>
 #include <sstream>
 #include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 namespace ranges = std::ranges;
-struct food {
-	std::vector<std::string> ingredients;
-	std::unordered_set<std::string> allergenes;
-};
-
-bool check_mapping(std::vector<food>const &foods, std::unordered_map<std::string, std::string> const &mapping) {
-	std::unordered_map<std::string, int> allergene_cnt { };
-	for (auto const &food : foods) {
-		allergene_cnt.clear();
-		//auto keys = std::ranges::for_each(food.allergenes,[](auto &element){return element;});
-		for (auto &ing : food.ingredients) {
-			if (mapping.contains(ing)) {
-				allergene_cnt[mapping.at(ing)]++;
-				fmt::print("{}: {} {}\n", ing, mapping.at(ing), allergene_cnt[mapping.at(ing)]);
-			}
-		}
-		if (allergene_cnt.size() != food.allergenes.size()) {
-			//return false;
-		}
-		for (auto const &al : food.allergenes) {
-			if (not allergene_cnt.contains(al)) {
-				fmt::print("not found {}\n", al);
-				return false;
-			}
-			if (allergene_cnt[al] > 1) {
-				return false;
-			}
-		}
-
-	}
-	return true;
-}
 
 auto parse_input(std::vector<std::string> const &lines) {
-	std::stringstream ss;
-	std::string token;
-
-	std::vector<food> foods;
-	std::unordered_map<std::string, std::unordered_set<std::string> > ingrediens2allergense;
-	std::unordered_map<std::string, std::unordered_set<std::string> > allergense2ingrediens;
+	std::stringstream ss { };
+	std::string token { };
+	std::unordered_map<std::string, std::unordered_set<std::string> > allergense2ingrediens { };
 	std::vector<std::string> ingredient_buffer { };
 	std::vector<std::string> all_ingredients { };
 	std::unordered_set<std::string> allergenes { };
 	for (auto const &line : lines) {
-		ingredient_buffer.clear();
 		bool is_ingredient { true };
+		ingredient_buffer.clear();
 		allergenes.clear();
 		ss.clear();
 		ss << line;
@@ -72,74 +33,101 @@ auto parse_input(std::vector<std::string> const &lines) {
 			if (is_ingredient) {
 				ingredient_buffer.push_back(token);
 				all_ingredients.push_back(token);
-				fmt::print("{}\n", token);
 			} else {
 				allergenes.insert(token.substr(0, token.size() - 1));
-				fmt::print("{}\n", token.substr(0, token.size() - 1));
 			}
 		}
-		foods.push_back( { ingredient_buffer, allergenes });
 		for (auto const &allergene : allergenes) {
-			auto new_set =  std::unordered_set<std::string>(ingredient_buffer.begin(), ingredient_buffer.end()) ;
+			auto const new_set = std::unordered_set<std::string>(ingredient_buffer.begin(), ingredient_buffer.end());
 			if (not allergense2ingrediens.contains(allergene)) {
-				allergense2ingrediens.insert( { allergene,new_set});
+				allergense2ingrediens.insert( { allergene, new_set });
 			} else {
-				auto copy =allergense2ingrediens[allergene];
-				for (auto  const &ing : copy) {
-					if(not new_set.contains(ing)){
+				auto const copy = allergense2ingrediens[allergene];
+				for (auto const &ing : copy) {
+					if (not new_set.contains(ing)) {
 						allergense2ingrediens[allergene].erase(ing);
 					}
 				}
 			}
 
 		}
-		/*
-		 for (auto const &ingredient : ingredient_buffer) {
-		 if (not ingrediens2allergense.contains(ingredient)) {
-		 ingrediens2allergense.insert({ingredient,allergenes});
-		 }else{
-		 auto aller = ingrediens2allergense[ingredient];
-		 for(auto &a: aller){
-		 if(not allergenes.contains(a)){
-		 ingrediens2allergense[ingredient].erase(a);
-		 }
-
-		 }
-		 }
-		 }*/
 
 	}
 
-	return std::make_tuple(allergense2ingrediens, all_ingredients, foods);
+	return std::make_tuple(allergense2ingrediens, all_ingredients);
 }
 
-int main() {
-
-	constexpr auto file_name = "build/input/input_21.txt";
-	auto lines = AOC::parse_lines(file_name);
-	lines.push_back("");
-	auto [ingrediens2allergense, all_ingredients, foods] = parse_input(lines);
-	std::unordered_set<std::string> possible_allergenes{};
-	for (auto &i2a : ingrediens2allergense) {
-		fmt::print("{} {} ", i2a.first, i2a.second.size());
+auto find_possible_allergenes(auto const &allergense2ingrediens) {
+	std::unordered_set<std::string> possible_allergenes { };
+	for (auto &i2a : allergense2ingrediens) {
 		for (auto &i : i2a.second) {
-			fmt::print("{}  ", i);
 			possible_allergenes.insert(i);
 		}
-		fmt::print("\n");
 	}
-	auto cnt{0U};
-	for(auto const &ing : all_ingredients){
-		if(not possible_allergenes.contains(ing)){
+	return possible_allergenes;
+}
+
+auto count_allergene_free(auto const &all_ingredients, auto const &possible_allergenes) {
+	auto cnt { 0U };
+	for (auto const &ing : all_ingredients) {
+		if (not possible_allergenes.contains(ing)) {
 			cnt++;
 		}
 	}
+	return cnt;
+}
 
-	//auto res = check_mapping(foods, { { "fvjkl", "soy" }, { "kfcds", "dairy" }, { "sqjhc", "fish" } });
+auto& find_allergne_mapping(auto &allergense2ingrediens) {
+	std::deque<std::string> deq { };
+	for (auto &i : allergense2ingrediens) {
+		if (i.second.size() == 1U) {
+			deq.push_back(*i.second.begin());
+			break;
+		}
+	}
+	while (not deq.empty()) {
+		auto cur_ing = deq.front();
+		deq.pop_front();
+		for (auto &i : allergense2ingrediens) {
+			if (i.second.size() > 1U and i.second.contains(cur_ing)) {
+				i.second.erase(cur_ing);
+				if (i.second.size() == 1U) {
+					deq.push_back(*i.second.begin());
+				}
+			}
+		}
+	}
+	return allergense2ingrediens;
+}
 
-	//fmt::print("res: {}\n", res);
-	fmt::print("Part 1: {}\n", cnt);
-	fmt::print("Part 2: {}\n", 0);
+auto get_allergenes_ingredients_ordered(auto const &allergense2ingrediens) {
+	std::vector<std::string> allergenes { allergense2ingrediens.size() };
+	ranges::transform(allergense2ingrediens, allergenes.begin(), [](auto &element) {
+		return element.first;
+	});
+	std::sort(allergenes.begin(), allergenes.end());
+	std::string part2 { };
+	for (auto const &a : allergenes) {
+		for (auto &ing : allergense2ingrediens.at(a)) {
+			part2 += ing;
+		}
+		part2 += ",";
+	}
+	//remove trailing ,
+	part2.pop_back();
+	return part2;
+}
+
+int main() {
+	constexpr auto file_name = "build/input/input_21.txt";
+	auto const lines = AOC::parse_lines(file_name);
+	auto [allergense2ingrediens, all_ingredients] = parse_input(lines);
+	auto possible_allergenes = find_possible_allergenes(allergense2ingrediens);
+	auto part1 = count_allergene_free(all_ingredients, possible_allergenes);
+	allergense2ingrediens = find_allergne_mapping(allergense2ingrediens);
+	auto part2 = get_allergenes_ingredients_ordered(allergense2ingrediens);
+	fmt::print("Part 1: {}\n", part1);
+	fmt::print("Part 2: {}\n", part2);
 	return EXIT_SUCCESS;
 }
 
