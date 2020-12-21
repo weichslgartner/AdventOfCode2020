@@ -59,9 +59,9 @@ auto parse_input(std::vector<std::string> const &lines) {
 
 auto find_possible_allergenes(auto const &allergense2ingrediens) {
 	std::unordered_set<std::string> possible_allergenes { };
-	for (auto &i2a : allergense2ingrediens) {
-		for (auto &i : i2a.second) {
-			possible_allergenes.insert(i);
+	for (auto &a2i : allergense2ingrediens) {
+		for (auto &ing : a2i.second) {
+			possible_allergenes.insert(ing);
 		}
 	}
 	return possible_allergenes;
