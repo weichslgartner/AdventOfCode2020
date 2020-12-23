@@ -7,8 +7,6 @@
 #include <string>
 #include <cstdint>
 #include <list>
-
-#include <utility>
 namespace ranges = std::ranges;
 
 
@@ -49,17 +47,14 @@ void crab_game_list(auto &cups, int const iterations) {
 		auto pick_up_it = circularNext(cups, current_cup_it);
 		auto pick_up_it_2 = circularNext(cups, pick_up_it);
 		auto pick_up_it_3 = circularNext(cups, pick_up_it_2);
-
-		while ((destination == *pick_up_it) or (destination == *pick_up_it_2) or (destination == *pick_up_it_3) or destination == 0) {
+		while ((destination == *pick_up_it) or (destination == *pick_up_it_2) or (destination == *pick_up_it_3) or (destination == 0)) {
 			if (destination == 0) {
 				destination = length;
 			} else {
 				destination = (destination - 1) % length;
 			}
 		}
-
 		dest_it = dest_lookup[destination];
-
 		dest_it = circularNext(cups, dest_it);
 		for (int j = 0; j < 3; ++j) {
 			cups.splice(dest_it, cups, circularNext(cups, current_cup_it));
@@ -69,7 +64,6 @@ void crab_game_list(auto &cups, int const iterations) {
 	}
 }
 auto calc_part2(auto &cups) {
-	std::string result { };
 	auto one_pos = std::find(cups.begin(), cups.end(), 1U);
 	one_pos = circularNext(cups, one_pos);
 	auto const n1 = static_cast<uint64_t>(*one_pos);
@@ -99,10 +93,8 @@ std::list<unsigned> parse_input(auto const &input) {
 }
 
 int main() {
-
 	auto const input = std::string { "624397158" };
 	//auto input = std::string { "389125467" };
-	//std::list<unsigned> cups;
 	auto cups = parse_input(input);
 	crab_game_list(cups, 100);
 	auto result = calc_part1(cups);
