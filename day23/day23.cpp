@@ -11,21 +11,8 @@
 #include <utility>
 namespace ranges = std::ranges;
 
-void print_cups(unsigned int current_cup_pos, auto const &cups) {
-	auto j { 0U };
-	for (auto c : cups) {
-		if (j == current_cup_pos) {
-			fmt::print("({}) ", c);
-		} else {
-			fmt::print("{} ", c);
-		}
-		j++;
-	}
-	fmt::print("\n");
 
-}
-
-void print_cups_v2(unsigned int current_cup, auto const &cups) {
+void print_cups(unsigned int current_cup, auto const &cups) {
 	auto j { 0U };
 	for (auto c : cups) {
 		if (c == current_cup) {
@@ -39,70 +26,20 @@ void print_cups_v2(unsigned int current_cup, auto const &cups) {
 
 }
 
-void pickup(std::vector<unsigned> const &cups, unsigned int current_cup_pos, unsigned length, std::vector<unsigned> &pick_up) {
-	pick_up.clear();
-	//fmt::print("Pick up: ");
-	for (auto j { 1 }; j < 4; j++) {
-		auto tmp = cups[(current_cup_pos + j) % length];
-		pick_up.push_back(tmp);
-		//fmt::print("{} ", tmp);
-	}
-	//fmt::print("\n");
+
+
+std::list<unsigned>::iterator circularNext(std::list<unsigned> &list, std::list<unsigned>::iterator const &it) {
+	return std::next(it) == list.end() ? list.begin() : std::next(it);
 }
 
-void crab_game(auto &cups, int iterations) {
-	auto current_cup_pos { 0U };
-	std::vector<unsigned> pick_up { };
-	auto current_cup = cups[current_cup_pos];
-	auto length = cups.size();
-	for (auto i { 1 }; i <= iterations; ++i) {
 
-		//print_cups(current_cup_pos,cups);
-		pickup(cups, current_cup_pos, length, pick_up);
-		cups.erase(std::remove_if(cups.begin(), cups.end(), [&pick_up](auto const x) {
-			return std::find(pick_up.begin(), pick_up.end(), x) != pick_up.end();
-		}),cups.end());
-		//fmt::print("cups size: {}\n", cups.size());
-		//print_cups(current_cup_pos,cups);
-		auto destination { current_cup - 1 };
-		while (std::find(pick_up.begin(), pick_up.end(), destination) != pick_up.end() or destination == 0) {
-			if (destination == 0) {
-				destination = length;
-			} else {
-				destination = (destination - 1) % length;
-			}
-			auto insert_point = std::find(cups.begin(), cups.end(), destination);
-			cups.insert(insert_point + 1, pick_up.begin(), pick_up.end());
-			auto next_cup = std::find(cups.begin(), cups.end(), current_cup);
-			if (next_cup < cups.end() - 1) {
-				current_cup = *(next_cup + 1);
 
-			} else {
-				current_cup = cups.front();
 
-			}
-			current_cup_pos = (current_cup_pos + 1) % length;
-			while (cups[current_cup_pos] != current_cup) {
-				std::rotate(cups.begin(), cups.begin() + 1, cups.end());
-			}
-
-		}
-	}
-}
-
-std::list<unsigned>::iterator circularNext(std::list<unsigned> &l, std::list<unsigned>::iterator &it) {
-	return std::next(it) == l.end() ? l.begin() : std::next(it);
-}
-
-std::list<unsigned>::iterator circularLast(std::list<unsigned> &l, std::list<unsigned>::iterator &it) {
-	return it == l.begin() ? std::prev(l.end()) : std::prev(it);
-}
-
-void crab_game_list(std::list<unsigned> &cups, int const iterations) {
-	std::list<unsigned>::iterator current_cup_it = cups.begin();
-	std::unordered_map<unsigned, std::list<unsigned>::iterator> dest_lookup;
+void crab_game_list(auto &cups, int const iterations) {
+	auto current_cup_it = cups.begin();
+	std::vector<std::list<unsigned>::iterator> dest_lookup{cups.size()+1};
 	for (auto iter = cups.begin(); iter != cups.end(); std::advance(iter, 1)) {
-		dest_lookup.insert( { *iter, iter });
+		dest_lookup[*iter]=iter;
 	}
 	auto current_cup = cups.front();
 	auto const length = cups.size();
@@ -132,9 +69,8 @@ void crab_game_list(std::list<unsigned> &cups, int const iterations) {
 	}
 }
 auto calc_part2(auto &cups) {
-	//print_cups(current_cup_pos,cups);
 	std::string result { };
-	auto one_pos = std::find(cups.begin(), cups.end(), 1);
+	auto one_pos = std::find(cups.begin(), cups.end(), 1U);
 	one_pos = circularNext(cups, one_pos);
 	auto const n1 = static_cast<uint64_t>(*one_pos);
 	one_pos = circularNext(cups, one_pos);
@@ -143,36 +79,35 @@ auto calc_part2(auto &cups) {
 }
 
 std::string calc_part1(auto &cups) {
-	//print_cups(current_cup_pos,cups);
 	std::string result { };
-	auto one_pos = std::find(cups.begin(), cups.end(), 1);
-	while (true) {
-		one_pos++;
-		if (one_pos == cups.end()) {
-			one_pos = cups.begin();
-		}
-		auto const c = '0' + *one_pos;
-		if (c == '1') {
-			break;
-		}
+	auto one_pos = std::find(cups.begin(), cups.end(), 1U);
+	auto it = circularNext(cups, one_pos);
+	while (it != one_pos) {
+		auto const c = '0' + *it;
 		result += c;
+		it = circularNext(cups, it);
 	}
 	return result;
+}
+
+std::list<unsigned> parse_input(auto const &input) {
+	std::list<unsigned> cups{};
+	for (auto i : input) {
+		cups.push_back(i - '0');
+	}
+	return cups;
 }
 
 int main() {
 
 	auto const input = std::string { "624397158" };
 	//auto input = std::string { "389125467" };
-	std::list<unsigned> cups;
-	for (auto i : input) {
-		cups.push_back(i - '0');
-	}
-	auto cups_cpy = cups;
+	//std::list<unsigned> cups;
+	auto cups = parse_input(input);
 	crab_game_list(cups, 100);
 	auto result = calc_part1(cups);
 	fmt::print("Part 1: {}\n", result);
-	cups = cups_cpy;
+	cups = parse_input(input);
 	auto max_el = *std::max_element(cups.begin(), cups.end());
 	for (auto i { max_el + 1 }; i <= 1000000; ++i) {
 		cups.push_back(i);
