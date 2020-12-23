@@ -27,8 +27,8 @@ public:
 };
 
 auto parse_input(auto const &lines) {
-	std::deque<unsigned> player1;
-	std::deque<unsigned> player2;
+	std::deque<unsigned> player1{};
+	std::deque<unsigned> player2{};
 	bool parse_player1 { true };
 	for (auto &line : lines) {
 		if (line.empty()) {
@@ -59,13 +59,15 @@ auto calc_result(std::deque<unsigned> &player) {
 }
 
 bool play_game_recursive(std::deque<unsigned> player1, std::deque<unsigned> player2) {
-	std::unordered_set<std::deque<unsigned>, DeqHash> memory { };
+	std::unordered_set<std::deque<unsigned>, DeqHash> memory_p1 { };
+	std::unordered_set<std::deque<unsigned>, DeqHash> memory_p2 { };
 	while (not player1.empty() and not player2.empty()) {
 		auto const card1 = player1.front();
 		player1.pop_front();
 		auto const card2 = player2.front();
 		player2.pop_front();
-		if (memory.contains(player1) or memory.contains(player2)) {
+		if (memory_p1.contains(player1) or memory_p2.contains(player2)) {
+			//fmt::print("endless loop");
 			return true;
 		}
 		bool player1_wins = card1 > card2;
@@ -80,8 +82,8 @@ bool play_game_recursive(std::deque<unsigned> player1, std::deque<unsigned> play
 			player2.push_back(card2);
 			player2.push_back(card1);
 		}
-		memory.insert(player1);
-		memory.insert(player2);
+		memory_p1.insert(player1);
+		memory_p2.insert(player2);
 	}
 	return not player1.empty();
 
