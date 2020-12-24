@@ -48,8 +48,9 @@ auto count_black(std::vector<Point> points, auto const &black_tiles) {
 
 }
 
-auto get_whites(std::vector<Point> const points, auto const &black_tiles) {
+auto get_whites(std::vector<Point> const &points, auto const &black_tiles) {
 	std::vector<Point> whites { };
+	whites.reserve(6U);
 	for (auto const &point : points) {
 		if (not black_tiles.contains(point)) {
 			whites.push_back(point);
@@ -144,8 +145,8 @@ auto& convert_to_black(std::unordered_set<Point> &flip_to_black, auto &neighbors
 }
 
 void part2(auto &black_tiles, auto iterations) {
-	std::unordered_set<Point> flip_to_white { };
-	std::unordered_set<Point> flip_to_black { };
+	std::unordered_set<Point> flip_to_white;
+	std::unordered_set<Point> flip_to_black;
 	for (auto i { 1 }; i <= iterations; ++i) {
 		flip_to_white.clear();
 		flip_to_black.clear();
