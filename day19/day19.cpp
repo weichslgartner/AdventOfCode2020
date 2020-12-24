@@ -87,90 +87,7 @@ auto parse_input(auto const &lines) {
 	return std::make_tuple(rule_map, leaf_map, messages);
 }
 
-bool solve(std::vector<int> const todo_init) {
 
-	std::vector<int> init_done { };
-	deq_el el { init_done, todo_init };
-	std::deque<deq_el> deq { };
-	deq.push_back(el);
-	//bool valid{false};
-	while (not deq.empty()) {
-		//if (verbose)
-
-		auto current = deq.back();
-		deq.pop_back();
-		fmt::print("deq size {} {} {}\n", deq.size(), current.done.size(), current.todo.size());
-		if (current.done.size() > 3 and current.done[0] != zero_rule[0]) {
-			continue;
-		}
-
-		if (current.done == zero_rule and current.todo.empty()) {
-			fmt::print("valid \n");
-			return true;
-		}
-		if (current.todo.empty()) {
-			continue;
-		}
-		if (verbose) {
-			fmt::print("done\n");
-			for (auto e : current.done) {
-				fmt::print("{},", e);
-			}
-			fmt::print("\ntodo\n,");
-			for (auto e : current.todo) {
-				fmt::print("{},", e);
-			}
-			fmt::print("\n==========\n,");
-		}
-		if (current.done.size() >= 1 and instant_replace_map.contains(current.done.back())) {
-			auto temp = current.done.back();
-			current.done.pop_back();
-			current.done.push_back(instant_replace_map[temp]);
-			deq.push_back(deq_el { current.done, current.todo });
-			current.done.pop_back();
-			current.done.push_back(temp);
-
-		}
-		auto old_done = current.done;
-		if (current.done.size() >= 2) {
-			Point p { current.done[current.done.size() - 2], current.done[current.done.size() - 1] };
-			if (inverse_map.contains(p)) {
-				if (verbose)
-					fmt::print("replace  {} {} with {}\n", p.x, p.y, inverse_map[p]);
-
-				current.done.pop_back();
-				current.done.pop_back();
-				current.done.push_back(inverse_map[p]);
-				deq.push_back(deq_el { current.done, current.todo });
-				//current.done.pop_back();
-
-				//current.done.push_back(p.x);
-				//current.done.push_back(p.y);
-
-			} else {
-				//break;
-			}
-		}
-		old_done.push_back(current.todo.front());
-		current.todo.erase(current.todo.begin());
-		if (verbose) {
-			fmt::print("done\n");
-			for (auto e : current.done) {
-				fmt::print("{},", e);
-			}
-			fmt::print("\ntodo\n,");
-			for (auto e : current.todo) {
-				fmt::print("{},", e);
-			}
-			fmt::print("\n,");
-		}
-		deq.push_back(deq_el { old_done, current.todo });
-
-	}
-	fmt::print("false\n");
-	return false;
-
-}
 
 bool dfs(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_map, std::unordered_map<int, char> const &leaf_map, int rule_index,
 		std::string const &message, unsigned &idx) {
@@ -261,12 +178,13 @@ bool dfs_iterative(std::unordered_map<int, std::vector<std::vector<int> > > cons
 		auto sub = message.substr(0, i);
 		if (cache.contains(sub)) {
 			biggest_sub = sub;
+			stack.emplace_back(element { cache[biggest_sub], biggest_sub,false });
 		}
 	}
 
 	if (not biggest_sub.empty()){
-		stack.pop_back();
-		stack.emplace_back(element { cache[biggest_sub], biggest_sub,false });
+		//stack.pop_back();
+
 
 	}
 	 std::unordered_set<std::string> black_list{};
@@ -360,12 +278,15 @@ int main() {
 	}
 	fmt::print("n mess {}\n", messages.size());
 	fmt::print("Part 1: {}\n", valid_cnt);
-
+	rule_map[8].clear();
 	rule_map[8].push_back(std::vector<int> { 42, 8 });
+	rule_map[8].push_back(std::vector<int> { 42 });
+	rule_map[11].clear();
 	rule_map[11].push_back(std::vector<int> { 42, 11, 31 });
+	rule_map[11].push_back(std::vector<int> { 42, 31 });
 	valid_cnt = 0;
 	for (auto const &mess : messages) {
-		fmt::print("{} {}\n", mess, mess.size());
+		//fmt::print("{} {}\n", mess, mess.size());
 		if (valid_mess.contains(mess)) {
 			valid_cnt++;
 			continue;
