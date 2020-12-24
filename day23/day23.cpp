@@ -7,6 +7,7 @@
 #include <string>
 #include <cstdint>
 #include <list>
+#include <iterator>
 namespace ranges = std::ranges;
 
 
@@ -26,7 +27,7 @@ void print_cups(unsigned int current_cup, auto const &cups) {
 
 
 
-std::list<unsigned>::iterator circularNext(std::list<unsigned> &list, std::list<unsigned>::iterator const &it) {
+auto circularNext(auto &list, auto const &it) {
 	return std::next(it) == list.end() ? list.begin() : std::next(it);
 }
 
@@ -63,6 +64,9 @@ void crab_game_list(auto &cups, int const iterations) {
 		current_cup = *current_cup_it;
 	}
 }
+
+
+
 auto calc_part2(auto &cups) {
 	auto one_pos = std::find(cups.begin(), cups.end(), 1U);
 	one_pos = circularNext(cups, one_pos);
