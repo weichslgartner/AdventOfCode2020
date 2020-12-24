@@ -5,10 +5,7 @@
 #include <cstdint>
 #include <fmt/core.h>
 #include <vector>
-#include <string>
 #include <cstdint>
-#include <list>
-#include <iterator>
 #include <unordered_set>
 namespace ranges = std::ranges;
 
@@ -17,7 +14,7 @@ enum class Dir {
 
 };
 
-Point& get_neighbor(Point &p, Dir dir) {
+Point& get_neighbor(Point &p, Dir const dir) {
 	switch (dir) {
 	case Dir::EAST:
 		p.x++;
@@ -51,9 +48,9 @@ auto count_black(std::vector<Point> points, auto const &black_tiles) {
 
 }
 
-auto get_whites(std::vector<Point> points, auto const &black_tiles) {
+auto get_whites(std::vector<Point> const points, auto const &black_tiles) {
 	std::vector<Point> whites { };
-	for (auto point : points) {
+	for (auto const &point : points) {
 		if (not black_tiles.contains(point)) {
 			whites.push_back(point);
 		}
@@ -63,6 +60,7 @@ auto get_whites(std::vector<Point> points, auto const &black_tiles) {
 
 std::vector<Point> get_all_neighbors(Point const &p) {
 	std::vector<Point> neighbors { };
+	neighbors.reserve(6U);
 	std::array const directions { Dir::EAST, Dir::SOUTHEAST, Dir::SOUTHWEST, Dir::WEST, Dir::NORTHWEST, Dir::NORTHEAST };
 	for (auto dir : directions) {
 		Point n { p.x, p.y };
@@ -74,13 +72,13 @@ std::vector<Point> get_all_neighbors(Point const &p) {
 auto parse_input(auto &lines) {
 	std::vector<std::vector<Dir>> paths { };
 	for (auto const &line : lines) {
-		std::vector<Dir> path;
+		std::vector<Dir> path{};
 		for (auto i { 0U }; i < line.size(); ++i) {
 			if (line[i] == 'e') {
 				path.push_back(Dir::EAST);
 			} else if (line[i] == 'w') {
 				path.push_back(Dir::WEST);
-			} else if (line[i] == 's') {
+			} else if (line[i] == 's' and i+1 <line.size() ) {
 				if (line[i + 1] == 'e') {
 					path.push_back(Dir::SOUTHEAST);
 				} else if (line[i + 1] == 'w') {
@@ -89,7 +87,7 @@ auto parse_input(auto &lines) {
 					fmt::print(stderr, "Parsing error");
 				}
 				i++;
-			} else if (line[i] == 'n') {
+			} else if (line[i] == 'n' and i+1 <line.size()) {
 				if (line[i + 1] == 'e') {
 					path.push_back(Dir::NORTHEAST);
 				} else if (line[i + 1] == 'w') {
@@ -166,7 +164,7 @@ void part2(auto &black_tiles, auto iterations) {
 int main() {
 	constexpr auto file_name = "build/input/input_24.txt";
 	auto const lines = AOC::parse_lines(file_name);
-	auto paths = parse_input(lines);
+	auto const paths = parse_input(lines);
 	auto black_tiles = flip_tiles_part1(paths);
 	fmt::print("Part 1: {}\n", black_tiles.size());
 	part2(black_tiles,100);
