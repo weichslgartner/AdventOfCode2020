@@ -5,6 +5,7 @@
 #include <numeric>
 #include <fmt/core.h>
 #include <functional>
+#include <iterator>
 #include <vector>
 #include <sstream>
 #include <string>
@@ -37,23 +38,22 @@ public:
 		set_borders();
 	}
 
-	void rotate() {
-		auto N = data.size();
+	constexpr void transponse() {
+		auto const N = data.size();
 		for (auto y { 0U }; y < N - 1; ++y) {
 			for (auto x { y + 1 }; x < N; ++x) {
 				std::swap(data[y][x], data[x][y]);
 			}
 		}
+	}
 
-		for (auto y { 0U }; y < N; ++y) {
-			for (auto x { 0U }; x < N / 2; ++x) {
-				std::swap(data[y][x], data[y][N - x - 1]);
-			}
-		}
+	constexpr void rotate() {
+		transponse();
+		flip();
 		set_borders();
 	}
 
-	void set_borders() {
+	constexpr void set_borders() {
 		left_border.clear();
 		right_border.clear();
 		for (auto &line : data) {
@@ -70,7 +70,7 @@ public:
 		}
 	}
 
-	void flip() {
+	constexpr void flip() {
 		left_border.clear();
 		right_border.clear();
 		for (auto &line : data) {
@@ -82,7 +82,7 @@ public:
 		bottom_border = data.back();
 	}
 
-	void next_transform() {
+	constexpr void next_transform() {
 		if (transform_state % 4 != 0) {
 			rotate();
 		} else {
@@ -91,7 +91,7 @@ public:
 		transform_state++;
 	}
 
-	void erase_borders() {
+	constexpr void erase_borders() {
 		data.erase(data.begin());
 		data.pop_back();
 		for (std::string &line : data) {
@@ -101,31 +101,28 @@ public:
 		}
 	}
 
-	void append_right(std::vector<std::string> const &other) {
+	void append_right(std::vector<std::string> const &&other) {
 		for (auto i { 0U }; i < other.size(); ++i) {
-			data[data.size() - other.size() + i] += other[i];
+			data[data.size() - other.size() + i] += std::move(other[i]);
 		}
 	}
 
-	void append_under(std::vector<std::string> &other) {
-		data.insert(data.end(), other.begin(), other.end());
+	void append_under(std::vector<std::string> &&other) {
+		data.insert(data.end(), std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()));
 	}
 
 	auto size() const {
 		return data.size();
 	}
 
-	auto count_sharp() {
-		//auto cnt_in_string = [](auto const &s){return std::count(s.begin(),s.end(),'#');};
-		auto cnt { 0U };
-		for (auto const &s : data) {
-			cnt += std::count(s.begin(), s.end(), '#');
-		}
-		return cnt;
+	constexpr auto count_sharp() const {
+		auto cnt_in_string = [](auto const prev, auto const &s) {
+			return std::count(s.begin(), s.end(), '#') + prev;
+		};
+		return std::accumulate(data.begin(), data.end(), 0U, cnt_in_string);
 	}
 
-	bool match(Grid &monster, Point start) {
-
+	constexpr bool match(Grid const &monster, Point &&start) {
 		if (start.y + monster.size() > data.size()) {
 			return false;
 		}
@@ -133,7 +130,7 @@ public:
 			return false;
 		}
 		auto y { start.y };
-		for (auto &monster_line : monster.data) {
+		for (auto const &monster_line : monster.data) {
 			auto x { start.x };
 			for (auto &monster_char : monster_line) {
 				if (monster_char == '#' and data[y][x] != '#') {
@@ -147,7 +144,7 @@ public:
 
 	}
 
-	auto cnt_matches(Grid &monster) {
+	constexpr auto cnt_matches(Grid const &monster) {
 		auto cnt { 0U };
 		for (auto y { 0 }; y < static_cast<int>(size() - monster.data.size()); ++y) {
 			for (auto x { 0 }; x < static_cast<int>(size() - monster.data.front().size()); ++x) {
@@ -203,13 +200,11 @@ auto part1(auto const &id2edges, auto const &edges2id) {
 	return corner_tiles;
 }
 
-bool is_unique_border(std::string const &border, std::unordered_map<std::string, std::vector<unsigned> > edges2id) {
-	auto edges = edges2id.at(border);
-	auto size = edges.size();
-	return size == 1U;
+constexpr bool is_unique_border(std::string const &border, std::unordered_map<std::string, std::vector<unsigned> > const &edges2id) {
+	return edges2id.at(border).size() == 1U;
 }
 
-unsigned get_next_id(std::string const &border, auto &edges2id, unsigned cur_id) {
+constexpr unsigned get_next_id(std::string const &border, auto &edges2id, unsigned cur_id) {
 	auto next_ids = edges2id[border];
 	next_ids.erase(std::remove(next_ids.begin(), next_ids.end(), cur_id), next_ids.end());
 	return next_ids.front();
@@ -311,9 +306,9 @@ Grid merge_to_single_grid(auto &supergrid) {
 				grid.print();
 			}
 			if (i == 0U) {
-				single_grid.append_under(grid.data);
+				single_grid.append_under(std::move(grid.data));
 			} else {
-				single_grid.append_right(grid.data);
+				single_grid.append_right(std::move(grid.data));
 			}
 			i++;
 		}
