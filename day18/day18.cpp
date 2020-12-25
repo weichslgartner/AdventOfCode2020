@@ -86,6 +86,7 @@ int64_t solve(std::string_view const input, bool const part2) {
 }
 
 void tests() {
+#ifndef NDEBUG
 	auto test = "1 + 2 * 3 + 4 * 5 + 6";
 	auto test2 = "2 * 3 + (4 * 5)";
 	auto test3 = "5 + (8 * 3 + 9 + 3 * 4 * 3)";
@@ -109,6 +110,7 @@ void tests() {
 	assert(solve(test9, true) == 23340);
 	assert(solve(test10, true) == 228);
 	assert(solve(test11, true) == 44);
+#endif
 }
 
 auto solve_and_sum(auto const &lines, bool part2) {
