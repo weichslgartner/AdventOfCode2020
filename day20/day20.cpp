@@ -1,5 +1,4 @@
 #include "common.h"
-
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -338,9 +337,9 @@ auto calc_part2(auto &monster, Grid &single_grid) {
 	return single_grid.count_sharp();
 }
 
-auto process_tile_input(auto &current_grid, auto &top_border, auto &buttom_border, auto &left_border, auto &right_border, auto &edges2id,
+auto process_tile_input(auto &current_grid, auto &top_border, auto &bottom_border, auto &left_border, auto &right_border, auto &edges2id,
 		auto &id2edges, auto &id2grid, auto cur_id) {
-	std::vector edges { top_border, buttom_border, left_border, right_border };
+	std::vector edges { top_border, bottom_border, left_border, right_border };
 	auto reversed_edges = edges;
 	ranges::for_each(reversed_edges, [](auto &line) {
 		return std::reverse(line.begin(), line.end());
@@ -366,7 +365,7 @@ auto parse_input(std::vector<std::string> const &lines) {
 	auto line_cnt { 0U };
 	std::string left_border { };
 	std::string right_border { };
-	std::string buttom_border { };
+	std::string bottom_border { };
 	std::string top_border { };
 	std::vector<std::string> current_grid { };
 	std::unordered_map<unsigned, std::vector<std::string> > id2edges;
@@ -382,7 +381,7 @@ auto parse_input(std::vector<std::string> const &lines) {
 			//	fmt::print("id {}\n", cur_id);
 		} else if (line.empty()) {
 			if (not current_grid.empty()) {
-				process_tile_input(current_grid, top_border, buttom_border, left_border, right_border, edges2id, id2edges, id2grid, cur_id);
+				process_tile_input(current_grid, top_border, bottom_border, left_border, right_border, edges2id, id2edges, id2grid, cur_id);
 			}
 			current_grid.clear();
 			line_cnt = 0U;
@@ -394,13 +393,13 @@ auto parse_input(std::vector<std::string> const &lines) {
 			}
 			left_border += line[0];
 			right_border += line.back();
-			buttom_border = line;
+			bottom_border = line;
 			current_grid.push_back(line);
 			line_cnt++;
 		}
 	}
 	if (not current_grid.empty()) {
-		process_tile_input(current_grid, top_border, buttom_border, left_border, right_border, edges2id, id2edges, id2grid, cur_id);
+		process_tile_input(current_grid, top_border, bottom_border, left_border, right_border, edges2id, id2edges, id2grid, cur_id);
 	}
 	return std::make_tuple(id2edges, edges2id, id2grid);
 }
