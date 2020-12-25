@@ -1,7 +1,6 @@
 #include "common.h"
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstdint>
 #include <fmt/core.h>
 #include <vector>
@@ -44,7 +43,9 @@ Point& get_neighbor(Point &p, Dir const dir) {
 }
 
 auto count_black(std::vector<Point> points, auto const &black_tiles) {
-	return ranges::count_if(points,[&black_tiles](auto const &p){return black_tiles.contains(p);});
+	return ranges::count_if(points, [&black_tiles](auto const &p) {
+		return black_tiles.contains(p);
+	});
 
 }
 
@@ -73,13 +74,13 @@ std::vector<Point> get_all_neighbors(Point const &p) {
 auto parse_input(auto &lines) {
 	std::vector<std::vector<Dir>> paths { };
 	for (auto const &line : lines) {
-		std::vector<Dir> path{};
+		std::vector<Dir> path { };
 		for (auto i { 0U }; i < line.size(); ++i) {
 			if (line[i] == 'e') {
 				path.push_back(Dir::EAST);
 			} else if (line[i] == 'w') {
 				path.push_back(Dir::WEST);
-			} else if (line[i] == 's' and i+1 <line.size() ) {
+			} else if (line[i] == 's' and i + 1 < line.size()) {
 				if (line[i + 1] == 'e') {
 					path.push_back(Dir::SOUTHEAST);
 				} else if (line[i + 1] == 'w') {
@@ -88,7 +89,7 @@ auto parse_input(auto &lines) {
 					fmt::print(stderr, "Parsing error");
 				}
 				i++;
-			} else if (line[i] == 'n' and i+1 <line.size()) {
+			} else if (line[i] == 'n' and i + 1 < line.size()) {
 				if (line[i + 1] == 'e') {
 					path.push_back(Dir::NORTHEAST);
 				} else if (line[i + 1] == 'w') {
@@ -108,7 +109,7 @@ auto parse_input(auto &lines) {
 }
 
 std::unordered_set<Point> flip_tiles_part1(auto const &paths) {
-	std::unordered_set<Point> black_tiles;
+	std::unordered_set<Point> black_tiles { };
 	for (auto const &path : paths) {
 		Point p { 0, 0 };
 		for (auto dir : path) {
@@ -144,9 +145,9 @@ auto& convert_to_black(std::unordered_set<Point> &flip_to_black, auto &neighbors
 
 }
 
-void part2(auto &black_tiles, auto iterations) {
-	std::unordered_set<Point> flip_to_white;
-	std::unordered_set<Point> flip_to_black;
+void part2(auto &black_tiles, auto const iterations) {
+	std::unordered_set<Point> flip_to_white { };
+	std::unordered_set<Point> flip_to_black { };
 	for (auto i { 1 }; i <= iterations; ++i) {
 		flip_to_white.clear();
 		flip_to_black.clear();
@@ -168,7 +169,7 @@ int main() {
 	auto const paths = parse_input(lines);
 	auto black_tiles = flip_tiles_part1(paths);
 	fmt::print("Part 1: {}\n", black_tiles.size());
-	part2(black_tiles,100);
+	part2(black_tiles, 100);
 	fmt::print("Part 2: {}\n", black_tiles.size());
 	return EXIT_SUCCESS;
 }
