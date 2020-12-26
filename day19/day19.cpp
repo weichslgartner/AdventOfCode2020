@@ -1,4 +1,6 @@
 #include "common.h"
+
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdint>
