@@ -211,12 +211,13 @@ constexpr unsigned get_next_id(std::string const &border, auto &edges2id, unsign
 }
 
 auto create_super_grid(int left_corner_id, auto &id2grid, auto &edges2id) {
-	auto supgrid_size = static_cast<unsigned>(std::sqrt(id2grid.size()));
-
+	auto const supgrid_size = static_cast<unsigned>(std::sqrt(id2grid.size()));
 	std::vector<std::vector<Grid>> supergrid;
+	supergrid.reserve(supgrid_size);
 	Grid curgrid = id2grid[left_corner_id];
 	for (auto y { 0U }; y < supgrid_size; ++y) {
 		std::vector<Grid> super_grid_line;
+		super_grid_line.reserve(supgrid_size);
 		for (auto x { 0U }; x < supgrid_size; ++x) {
 			if (y == 0 and x == 0) {
 				while ((not is_unique_border(curgrid.top_border, edges2id)) or (not is_unique_border(curgrid.left_border, edges2id))) {

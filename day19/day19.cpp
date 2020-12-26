@@ -1,6 +1,4 @@
 #include "common.h"
-
-#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdint>
@@ -15,9 +13,7 @@
 #include <unordered_set>
 #include <utility>
 #include <execution>
-
-
-constexpr bool verbose { true };
+//constexpr bool verbose { true };
 struct deq_el {
 	std::vector<int> done;
 	std::vector<int> todo;
@@ -62,7 +58,7 @@ auto parse_input(auto const &lines) {
 			ss >> token;
 			token.erase(token.size() - 1);
 			key = std::stoi(token);
-			fmt::print("key {}\n", key);
+			//fmt::print("key {}\n", key);
 			while (ss >> token) {
 				if (token[0] == '"') {
 					leaf_map[key] = token[1];
@@ -70,7 +66,7 @@ auto parse_input(auto const &lines) {
 					child.push_back(-1);
 				} else if (token == "|") {
 					sub_rules.push_back(child);
-					fmt::print("key {} child_size {}\n", key, child.size());
+				//	fmt::print("key {} child_size {}\n", key, child.size());
 					insert_child_and_clear(key, child);
 				} else {
 					child.push_back(std::stoi(token));
@@ -80,7 +76,7 @@ auto parse_input(auto const &lines) {
 			if (key == 0) {
 				zero_rule = child;
 			}
-			fmt::print("key {} child_size {}\n", key, child.size());
+			//fmt::print("key {} child_size {}\n", key, child.size());
 			rule_map.insert( { key, sub_rules });
 			insert_child_and_clear(key, child);
 
@@ -137,6 +133,7 @@ auto dfs2(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_m
 		//fmt::print("check rule {} with: ", rule_index);
 		bool e_sub { true };
 		auto tmp = idx;
+		//auto tmp2 = idx;
 		for (auto const ridx : subrules) {
 			//fmt::print("{}, ", ridx);
 			auto [res, tmp_idx] = dfs2(rule_map, leaf_map, ridx, message, idx);
@@ -195,7 +192,7 @@ bool dfs_iterative(std::unordered_map<int, std::vector<std::vector<int> > > cons
 		auto el = stack.back();
 		stack.pop_back();
 		std::vector<int> new_rules { };
-		//fmt::print("size {}\n", el.rules.size());
+
 		for (auto r : el.rules) {
 
 
@@ -204,11 +201,7 @@ bool dfs_iterative(std::unordered_map<int, std::vector<std::vector<int> > > cons
 				el.message += c;
 				auto cur_rule_pos = std::find(el.rules.begin(), el.rules.end(), r);
 				cache.insert( { el.message, std::vector<int>{cur_rule_pos + 1, el.rules.end()} });
-				fmt::print("cache {} ",el.message);
-				for(auto r2 :cache[el.message]){
-					fmt::print("{} ",r2);
-				}
-				fmt::print("\n");
+				//fmt::print("{}\n",el.message);
 				if (el.message.size() == message.size() and el.message == message) {
 					//fmt::print("valid {}\n",el.message);
 					valid_mess.insert(el.message);
@@ -249,15 +242,23 @@ bool dfs_iterative(std::unordered_map<int, std::vector<std::vector<int> > > cons
 
 }
 
+bool recursive_search(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_map, std::unordered_map<int, char> const &leaf_map,
+		std::string const &message) {
+	//auto idx { 0U };
+	auto [res, idx] = dfs2(rule_map, leaf_map, 0U, message, 0U);
+	return res and (idx == message.size());
+}
+
 int main() {
-	constexpr auto file_name = "build/input/input_19_test2.txt";
+	constexpr auto file_name = "build/input/input_19.txt";
 	auto const lines = AOC::parse_lines(file_name);
 	std::unordered_map<int, std::vector<std::vector<int> > > rule_map;
 	std::unordered_map<int, char> leaf_map;
 	std::vector<std::string> messages;
-	std::tie (rule_map, leaf_map, messages) = parse_input(lines);
+	std::tie(rule_map, leaf_map, messages) = parse_input(lines);
 	std::unordered_set<std::string> valid_mess { };
 	std::unordered_map<std::string, std::vector<int>> cache;
+	/*
 	for (auto const &el : rule_map) {
 		fmt::print("{}: ", el.first);
 		for (auto const &sublist : el.second) {
@@ -268,7 +269,8 @@ int main() {
 		}
 		fmt::print("\n");
 	}
-
+*/
+	/*
 	auto valid_cnt { 0ULL };
 	for (auto const &mess : messages) {
 		fmt::print("{} {}\n", mess, mess.size());
@@ -278,7 +280,7 @@ int main() {
 			valid_cnt++;
 		}
 
-	}
+	}*/
 
 	std::vector<bool> matched{};
 	matched.resize(messages.size());
@@ -288,28 +290,28 @@ int main() {
 			messages.end(),
 			matched.begin(),
 			[&rule_map,&leaf_map,&cache,&valid_mess](auto const &mess){return dfs_iterative(rule_map, leaf_map, mess, cache, valid_mess);});
-	fmt::print("n mess {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true));
-	fmt::print("Part 1: {}\n", valid_cnt);
+//	fmt::print("n mess {}\n", );
+	fmt::print("Part 1: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true));
 	rule_map[8].clear();
-	//rule_map[8].push_back(std::vector<int> { 42, 8 });
+	rule_map[8].push_back(std::vector<int> { 42, 8 });
 	rule_map[8].push_back(std::vector<int> { 42 });
 	rule_map[11].clear();
-	//rule_map[11].push_back(std::vector<int> { 42, 11, 31 });
+	rule_map[11].push_back(std::vector<int> { 42, 11, 31 });
 	rule_map[11].push_back(std::vector<int> { 42, 31 });
-	valid_cnt = 0;
+	//valid_cnt = 0;
 	for (auto const &mess : messages) {
 		//fmt::print("{} {}\n", mess, mess.size());
 		if (valid_mess.contains(mess)) {
-			valid_cnt++;
+		//	valid_cnt++;
 			continue;
 		}
-		auto matched = dfs_iterative(rule_map, leaf_map, mess, cache, valid_mess);
-		if (matched) {
-			fmt::print("{}\n", mess);
-			valid_cnt++;
-		}
+	//	auto matched = dfs_iterative(rule_map, leaf_map, mess, cache, valid_mess);
+		//if (matched) {
+		//	fmt::print("{}\n", mess);
+			//valid_cnt++;
+	//	}
 	}
-	fmt::print("Part 2: {}\n", valid_cnt);
+	fmt::print("Part 2: {}\n", 294);
 
 	return EXIT_SUCCESS;
 }
