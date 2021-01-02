@@ -1,9 +1,9 @@
 #include <fmt/printf.h>
 #include <fstream>
-#include <iostream>
 #include <optional>
 #include <span>
 #include <sstream>
+#include <string>
 #include <unordered_set>
 
 using numb_type = unsigned;
@@ -24,9 +24,9 @@ std::unordered_set<numb_type> parse_list(std::string const &file_name) {
   return numbers;
 }
 
-std::optional<unsigned> part1(std::unordered_set<numb_type> &numbers,
-                              numb_type sum) {
-  for (auto numb : numbers) {
+std::optional<unsigned> part1(std::unordered_set<numb_type> const &numbers,
+                              numb_type const sum) {
+  for (auto const numb : numbers) {
     auto need = sum - numb;
     if (numbers.contains(need)) {
       return need * numb;

@@ -53,7 +53,10 @@ public:
 		set_borders();
 	}
 
-	constexpr void set_borders() {
+#ifdef NDEBUG
+	constexpr
+#endif
+	 void set_borders() {
 		left_border.clear();
 		right_border.clear();
 		for (auto &line : data) {
@@ -70,7 +73,10 @@ public:
 		}
 	}
 
-	constexpr void flip() {
+#ifdef NDEBUG
+	constexpr
+#endif
+	 void flip() {
 		left_border.clear();
 		right_border.clear();
 		for (auto &line : data) {
@@ -91,7 +97,10 @@ public:
 		transform_state++;
 	}
 
-	constexpr void erase_borders() {
+#ifdef NDEBUG
+	constexpr
+#endif
+	 void erase_borders() {
 		data.erase(data.begin());
 		data.pop_back();
 		for (std::string &line : data) {
@@ -122,7 +131,11 @@ public:
 		return std::accumulate(data.begin(), data.end(), 0U, cnt_in_string);
 	}
 
-	constexpr bool match(Grid const &monster, Point &&start) {
+
+#ifdef NDEBUG
+	constexpr
+#endif
+	 bool match(Grid const &monster, Point &&start) {
 		if (start.y + monster.size() > data.size()) {
 			return false;
 		}

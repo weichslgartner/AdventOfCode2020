@@ -13,36 +13,35 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
+#include <ranges>
 #include <execution>
-//constexpr bool verbose { true };
-struct deq_el {
-	std::vector<int> done;
-	std::vector<int> todo;
-};
+#include <iterator>
+namespace ranges = std::ranges;
 
-std::unordered_map<Point, int> inverse_map;
-std::unordered_map<int, int> instant_replace_map;
-std::unordered_map<char, int> literal_map;
-std::vector<int> zero_rule;
 
-int insert_child_and_clear(int key, std::vector<int> &child) {
+int insert_child_and_clear(auto &inverse_map, auto &instant_replace_map, int key, std::vector<int> &child) {
 	if (child.size() == 1) {
 		instant_replace_map.insert( { child[0], key });
 	} else if (child.size() == 2) {
-		inverse_map.insert( { Point { child[0], child[1] }, key });
-	} else {
+		Point p { child[0], child[1] };
+		if (not inverse_map.contains(p)) {
+			inverse_map.insert( { p, std::unordered_set<int> { key } });
+		} else {
+			inverse_map.at(p).insert(key);
 
+		}
 	}
-
 	child.clear();
 	return key;
 }
 
 auto parse_input(auto const &lines) {
 	std::stringstream ss { };
+	std::unordered_map<Point, std::unordered_set<int>> inverse_map;
 	std::unordered_map<int, std::vector<std::vector<int> > > rule_map;
 	std::unordered_map<int, char> leaf_map;
+	std::unordered_map<char, int> literal_map;
+	std::unordered_map<int, int> instant_replace_map;
 	std::vector<std::string> messages;
 	bool parse_rules { true };
 	for (auto const &line : lines) {
@@ -68,187 +67,73 @@ auto parse_input(auto const &lines) {
 					child.push_back(-1);
 				} else if (token == "|") {
 					sub_rules.push_back(child);
-				//	fmt::print("key {} child_size {}\n", key, child.size());
-					insert_child_and_clear(key, child);
+					//	fmt::print("key {} child_size {}\n", key, child.size());
+					insert_child_and_clear(inverse_map, instant_replace_map, key, child);
 				} else {
 					child.push_back(std::stoi(token));
 				}
 			}
 			sub_rules.push_back(child);
-			if (key == 0) {
-				zero_rule = child;
-			}
+
 			//fmt::print("key {} child_size {}\n", key, child.size());
 			rule_map.insert( { key, sub_rules });
-			insert_child_and_clear(key, child);
+			insert_child_and_clear(inverse_map, instant_replace_map, key, child);
 
 		} else {
 			messages.push_back(line);
 		}
 	}
-	return std::make_tuple(rule_map, leaf_map, messages);
+	return std::make_tuple(rule_map, leaf_map, inverse_map, instant_replace_map, literal_map, messages);
+}
+auto cartesian_product(std::unordered_set<int> &a, std::unordered_set<int> &b) {
+	std::vector<Point> points { };
+	std::for_each(a.begin(), a.end(), [&](int A) {
+		std::for_each(b.begin(), b.end(), [A, &points](int B) {
+			points.push_back(Point { A, B });
+			//fmt::print("point is {},{}\n", A, B);
+		}
+		);
+	});
+	return points;
 }
 
-
-
-bool dfs(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_map, std::unordered_map<int, char> const &leaf_map, int rule_index,
-		std::string const &message, unsigned &idx) {
-	if (leaf_map.contains(rule_index)) {
-		auto res = leaf_map.at(rule_index) == message[idx];
-		fmt::print("eval ridx {}: {} actual {} at pos {} is {} \n", rule_index, leaf_map.at(rule_index), message[idx], idx, res);
-		idx++;
-		return res;
-	}
-	bool rule_eval { false };
-	for (auto const &subrules : rule_map.at(rule_index)) {
-		fmt::print("check rule {} with: ", rule_index);
-		bool e_sub { true };
-		auto tmp = idx;
-		for (auto const ridx : subrules) {
-			fmt::print("{}, ", ridx);
-			e_sub = e_sub and dfs(rule_map, leaf_map, ridx, message, idx);
-
+bool cyk(std::unordered_map<Point, std::unordered_set<int>> const &inverse_map, std::unordered_map<char, int> const &literal_map,
+		std::unordered_map<int, int> const &instant_replace_map, std::string_view message) {
+	auto const size { message.size() };
+	std::vector<std::vector<std::unordered_set<int>>> table;
+	table.resize(size);
+	table[0].reserve(size);
+	ranges::transform(message, std::back_inserter(table[0]), [&literal_map](char const c) {
+		return std::unordered_set<int> { literal_map.at(c) };
+	});
+	ranges::for_each(table[0], [&instant_replace_map](auto &s) {
+		if (instant_replace_map.contains(*s.begin())) {
+			s.insert(instant_replace_map.at(*s.begin()));
 		}
-		fmt::print("| ");
-		if (not e_sub) {
-			idx = tmp;
-		}
-		rule_eval = rule_eval or e_sub;
-	}
-	fmt::print("{}\n", rule_eval);
-	return rule_eval;
+	});
+	for (auto l { 2U }; l <= size; l++) {
+		table[l - 1].resize(size - l + 1);
 
-}
-
-auto dfs2(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_map, std::unordered_map<int, char> const &leaf_map, int rule_index,
-		std::string const &message, unsigned idx) {
-	if (leaf_map.contains(rule_index)) {
-		auto res = leaf_map.at(rule_index) == message[idx];
-		fmt::print("eval ridx {}: {} actual {} at pos {} is {} \n", rule_index, leaf_map.at(rule_index), message[idx], idx, res);
-		if (res)
-			idx++;
-
-		return std::make_pair(res, idx);
-	}
-	bool rule_eval { false };
-	for (auto const &subrules : rule_map.at(rule_index)) {
-		//fmt::print("check rule {} with: ", rule_index);
-		bool e_sub { true };
-		auto tmp = idx;
-		//auto tmp2 = idx;
-		for (auto const ridx : subrules) {
-			//fmt::print("{}, ", ridx);
-			auto [res, tmp_idx] = dfs2(rule_map, leaf_map, ridx, message, idx);
-			e_sub = e_sub and res;
-			if (e_sub) {
-				idx = tmp_idx;
-			}
-
-		}
-
-		//fmt::print("| ");
-
-		if (not e_sub) {
-			idx = tmp;
-		}
-		rule_eval = rule_eval or e_sub;
-		if (rule_eval and idx == message.size()) {
-			fmt::print("valid {}\n", message);
-			//valid_mess.insert(message);
-		}
-	}
-	//fmt::print("{}\n", rule_eval);
-	return std::make_pair(rule_eval, idx);
-
-}
-
-struct element {
-	std::vector<int> rules;
-	std::string message;
-	bool prob_loop;
-
-};
-
-bool dfs_iterative(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_map, std::unordered_map<int, char> const &leaf_map,
-		std::string const &message, std::unordered_map<std::string, std::vector<int>> &cache, std::unordered_set<std::string> &valid_mess) {
-	std::vector<element> stack { element { rule_map.at(0)[0], "",false } }; // { rule_map.at(0), "" }
-	if (valid_mess.contains(message)) {
-		return true;
-	}
-	std::string biggest_sub { };
-	for (auto i { 0U}; i < message.size(); ++i) {
-		auto sub = message.substr(0, i);
-		if (cache.contains(sub)) {
-			biggest_sub = sub;
-			stack.emplace_back(element { cache[biggest_sub], biggest_sub,false });
-		}
-	}
-
-	if (not biggest_sub.empty()){
-		//stack.pop_back();
-
-
-	}
-	 std::unordered_set<std::string> black_list{};
-	while (not stack.empty()) {
-		auto el = stack.back();
-		stack.pop_back();
-		std::vector<int> new_rules { };
-
-		for (auto r : el.rules) {
-
-
-			if (leaf_map.contains(r)) {
-				auto c = leaf_map.at(r);
-				el.message += c;
-				auto cur_rule_pos = std::find(el.rules.begin(), el.rules.end(), r);
-				cache.insert( { el.message, std::vector<int>{cur_rule_pos + 1, el.rules.end()} });
-				//fmt::print("{}\n",el.message);
-				if (el.message.size() == message.size() and el.message == message) {
-					//fmt::print("valid {}\n",el.message);
-					valid_mess.insert(el.message);
-					return true;
-				}
-				if (not (message.substr(0, el.message.size()) == el.message)) {
-					black_list.insert(el.message);
-					break;
-				}
-				if (el.message.size() > message.size()) {
-					black_list.insert(el.message);
-					break;
-				}
-
-			} else {
-				for (auto subrules : rule_map.at(r)) {
-					new_rules.clear();
-					//fmt::print("replace {} with ", r);
-					for (auto const ridx : subrules) {
-						new_rules.push_back(ridx);
-						if(ridx == 42 or ridx == 31){
-							el.prob_loop = true;
+		for (auto s { 0U }; s <= size - l; s++) {
+			for (auto p { 1U }; p < l; p++) {
+				auto const points = cartesian_product(table.at(p - 1).at(s), table.at(l - p - 1).at(s + p));
+				for (auto const &p : points) {
+					if (inverse_map.contains(p)) {
+						std::unordered_set<int> to_insert = inverse_map.at(p);
+						table.at(l - 1).at(s).insert(to_insert.begin(), to_insert.end());
+						for (auto &instant : to_insert) {
+							if (instant_replace_map.contains(instant)) {
+								table.at(l - 1).at(s).insert(instant_replace_map.at(instant));
+							}
 						}
-
-						//fmt::print(" {} ", ridx);
-
 					}
-					//fmt::print("\n");
-					auto cur_rule_pos = std::find(el.rules.begin(), el.rules.end(), r);
-					new_rules.insert(new_rules.end(), cur_rule_pos + 1, el.rules.end());
-					stack.push_back( { new_rules, el.message,el.prob_loop });
 				}
 
 			}
 		}
 	}
-	return false;
+	return table[size - 1][0].contains(0);
 
-}
-
-bool recursive_search(std::unordered_map<int, std::vector<std::vector<int> > > const &rule_map, std::unordered_map<int, char> const &leaf_map,
-		std::string const &message) {
-	//auto idx { 0U };
-	auto [res, idx] = dfs2(rule_map, leaf_map, 0U, message, 0U);
-	return res and (idx == message.size());
 }
 
 int main() {
@@ -257,63 +142,38 @@ int main() {
 	std::unordered_map<int, std::vector<std::vector<int> > > rule_map;
 	std::unordered_map<int, char> leaf_map;
 	std::vector<std::string> messages;
-	std::tie(rule_map, leaf_map, messages) = parse_input(lines);
+	std::unordered_map<Point, std::unordered_set<int>> inverse_map;
+	std::unordered_map<char, int> literal_map;
+	std::unordered_map<int, int> instant_replace_map;
+	std::tie(rule_map, leaf_map, inverse_map, instant_replace_map, literal_map, messages) = parse_input(lines);
 	std::unordered_set<std::string> valid_mess { };
-	std::unordered_map<std::string, std::vector<int>> cache;
-	/*
-	for (auto const &el : rule_map) {
-		fmt::print("{}: ", el.first);
-		for (auto const &sublist : el.second) {
-			for (auto const i : sublist) {
-				fmt::print("{}, ", i);
-			}
-			fmt::print("| ");
-		}
-		fmt::print("\n");
-	}
-*/
-	/*
-	auto valid_cnt { 0ULL };
-	for (auto const &mess : messages) {
-		fmt::print("{} {}\n", mess, mess.size());
-		auto matched = dfs_iterative(rule_map, leaf_map, mess, cache, valid_mess);
-		if (matched) {
-			fmt::print("{}\n", mess);
-			valid_cnt++;
-		}
-
-	}*/
-
-	std::vector<bool> matched{};
+	std::vector<bool> matched { };
 	matched.resize(messages.size());
 
-	std::transform(std::execution::par_unseq,
-			messages.begin(),
-			messages.end(),
-			matched.begin(),
-			[&rule_map,&leaf_map,&cache,&valid_mess](auto const &mess){return dfs_iterative(rule_map, leaf_map, mess, cache, valid_mess);});
-//	fmt::print("n mess {}\n", );
+	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),
+			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
+				return cyk(inverse_map, literal_map, instant_replace_map, mess);
+			});
 	fmt::print("Part 1: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true));
+
 	rule_map[8].clear();
 	rule_map[8].push_back(std::vector<int> { 42, 8 });
 	rule_map[8].push_back(std::vector<int> { 42 });
 	rule_map[11].clear();
-	rule_map[11].push_back(std::vector<int> { 42, 11, 31 });
+	rule_map[11].push_back(std::vector<int> { 42, 666 });
 	rule_map[11].push_back(std::vector<int> { 42, 31 });
-	//valid_cnt = 0;
-	for (auto const &mess : messages) {
-		//fmt::print("{} {}\n", mess, mess.size());
-		if (valid_mess.contains(mess)) {
-		//	valid_cnt++;
-			continue;
-		}
-	//	auto matched = dfs_iterative(rule_map, leaf_map, mess, cache, valid_mess);
-		//if (matched) {
-		//	fmt::print("{}\n", mess);
-			//valid_cnt++;
-	//	}
-	}
-	fmt::print("Part 2: {}\n", 294);
+	rule_map.insert( { 666, std::vector<std::vector<int>> { std::vector<int> { 11, 31 } } });
+	inverse_map.insert( { Point { 42, 8 }, { 8 } });
+	inverse_map.insert( { Point { 11, 31 }, { 666 } });
+	inverse_map.insert( { Point { 42, 666 }, { 11 } });
+	//matched.clear();
+	//matched.resize(messages.size());
+	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),
+			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
+				return cyk(inverse_map, literal_map, instant_replace_map, mess);
+			});
+
+	fmt::print("Part 2: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true)); //294
 
 	return EXIT_SUCCESS;
 }
