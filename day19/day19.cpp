@@ -146,7 +146,7 @@ int main() {
 	std::tie(rule_map, leaf_map, inverse_map, instant_replace_map, literal_map, messages) = parse_input(lines);
 	std::vector<bool> matched { };
 	matched.resize(messages.size());
-	std::transform(std::execution::par, messages.begin(), messages.end(), matched.begin(),
+	std::transform(std::execution::seq, messages.begin(), messages.end(), matched.begin(),
 			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
 				return cyk(inverse_map, literal_map, instant_replace_map, mess);
 			});
@@ -154,7 +154,7 @@ int main() {
 	inverse_map.insert( { Point { 42, 8 }, { 8 } });
 	inverse_map.insert( { Point { 11, 31 }, { 666 } });
 	inverse_map.insert( { Point { 42, 666 }, { 11 } });
-	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),matched.begin(),
+	std::transform(std::execution::seq, messages.begin(), messages.end(), matched.begin(),matched.begin(),
 			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess, bool matched) {
 				return matched or cyk(inverse_map, literal_map, instant_replace_map, mess);
 			});
