@@ -25,38 +25,42 @@ public:
 	std::string bottom_border;
 	unsigned id;
 	unsigned transform_state;
+	size_t grid_size;
 	Grid() :
-			data { }, id { 0U }, transform_state { 0U } {
+			data { }, id { 0U }, transform_state { 0U }, grid_size { 0U } {
 	}
 	Grid(std::vector<std::string> const &grid, unsigned const id_) :
-			data { grid }, id { id_ }, transform_state { 0U } {
+			data { grid }, id { id_ }, transform_state { 0U }, grid_size { grid.size() } {
 		set_borders();
 	}
 
 	Grid(std::vector<std::string> &&grid, unsigned const id_) :
-			data { std::move(grid) }, id { id_ }, transform_state { 0U } {
+			data { std::move(grid) }, id { id_ }, transform_state { 0U }, grid_size { grid.size() } {
 		set_borders();
 	}
 
 	constexpr void transponse() {
-		auto const N = data.size();
-		for (auto y { 0U }; y < N - 1; ++y) {
-			for (auto x { y + 1 }; x < N; ++x) {
+
+		for (auto y { 0U }; y < grid_size - 1; ++y) {
+			for (auto x { y + 1 }; x < grid_size; ++x) {
 				std::swap(data[y][x], data[x][y]);
 			}
 		}
 	}
 
-	constexpr void rotate() {
+#if defined NDEBUG && defined clang
+	constexpr
+#endif
+	void rotate() {
 		transponse();
 		flip();
 		set_borders();
 	}
 
-#ifdef NDEBUG
+#if defined NDEBUG && defined clang
 	constexpr
 #endif
-	 void set_borders() {
+	void set_borders() {
 		left_border.clear();
 		right_border.clear();
 		for (auto &line : data) {
@@ -73,10 +77,10 @@ public:
 		}
 	}
 
-#ifdef NDEBUG
+#if defined NDEBUG && defined clang
 	constexpr
 #endif
-	 void flip() {
+	void flip() {
 		left_border.clear();
 		right_border.clear();
 		for (auto &line : data) {
@@ -88,7 +92,10 @@ public:
 		bottom_border = data.back();
 	}
 
-	constexpr void next_transform() {
+#if defined clang
+	constexpr
+#endif
+	void next_transform() {
 		if (transform_state % 4 != 0) {
 			rotate();
 		} else {
@@ -97,10 +104,10 @@ public:
 		transform_state++;
 	}
 
-#ifdef NDEBUG
+#if defined NDEBUG && defined clang
 	constexpr
 #endif
-	 void erase_borders() {
+	void erase_borders() {
 		data.erase(data.begin());
 		data.pop_back();
 		for (std::string &line : data) {
@@ -114,29 +121,33 @@ public:
 		for (auto i { 0U }; i < other.size(); ++i) {
 			data[data.size() - other.size() + i] += std::move(other[i]);
 		}
+		grid_size = data.size();
 	}
 
 	void append_under(std::vector<std::string> &&other) {
 		data.insert(data.end(), std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()));
+		grid_size = data.size();
 	}
 
 	auto size() const {
-		return data.size();
+		return grid_size;
 	}
 
-	constexpr auto count_sharp() const {
+#if defined NDEBUG && defined clang
+	constexpr
+#endif
+	auto count_sharp() const {
 		auto cnt_in_string = [](auto const prev, auto const &s) {
 			return std::count(s.begin(), s.end(), '#') + prev;
 		};
 		return std::accumulate(data.begin(), data.end(), 0U, cnt_in_string);
 	}
 
-
-#ifdef NDEBUG
+#if defined NDEBUG && defined clang
 	constexpr
 #endif
-	 bool match(Grid const &monster, Point &&start) {
-		if (start.y + monster.size() > data.size()) {
+	bool match(Grid const &monster, Point &&start) {
+		if (start.y + monster.size() > grid_size) {
 			return false;
 		}
 		if (start.x + monster.data.front().size() > data.front().size()) {
@@ -157,7 +168,10 @@ public:
 
 	}
 
-	constexpr auto cnt_matches(Grid const &monster) {
+#if defined NDEBUG && defined clang
+	constexpr
+#endif
+	auto cnt_matches(Grid const &monster) {
 		auto cnt { 0U };
 		for (auto y { 0 }; y < static_cast<int>(size() - monster.data.size()); ++y) {
 			for (auto x { 0 }; x < static_cast<int>(size() - monster.data.front().size()); ++x) {
@@ -213,7 +227,10 @@ auto part1(auto const &id2edges, auto const &edges2id) {
 	return corner_tiles;
 }
 
-constexpr bool is_unique_border(std::string const &border, std::unordered_map<std::string, std::vector<unsigned> > const &edges2id) {
+#if defined clang
+	constexpr
+#endif
+bool is_unique_border(std::string const &border, std::unordered_map<std::string, std::vector<unsigned> > const &edges2id) {
 	return edges2id.at(border).size() == 1U;
 }
 

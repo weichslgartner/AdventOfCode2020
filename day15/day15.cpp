@@ -1,18 +1,10 @@
 #include <fmt/core.h>
 #include <deque>
-#include <unordered_map>
-#include "absl/container/flat_hash_map.h"
-//#include "folly/container/F14Map.h"
-
-
-using hash_map = std::unordered_map<int, int>;
-//using hash_map = absl::flat_hash_map<int, int>;
-//using hash_map = folly::F14FastMap<int, int>;
-
+#include <vector>
 
 auto solve(std::deque<int> init_numbers, int const bound) {
-	hash_map memory { };
-	memory.reserve(bound/8);
+	std::vector<int> memory { };
+	memory.reserve(bound / 8);
 	auto current_number { 0 };
 	auto last_number { -1 };
 	for (auto i { 1 }; i <= bound; ++i) {
@@ -20,21 +12,25 @@ auto solve(std::deque<int> init_numbers, int const bound) {
 			current_number = init_numbers.front();
 			init_numbers.pop_front();
 		} else {
-			if (!memory.contains(last_number)) {
+			if (last_number >= memory.size() or memory.at(last_number) == 0) {
 				current_number = 0;
 			} else {
 				current_number = i - 1 - memory[last_number];
 			}
 		}
 		//fmt::print("{}, {}\n", i, current_number);
-		if (memory.contains(last_number)) {
-			memory.at(last_number) = i - 1;
-		} else {
-			memory.insert( { last_number, i - 1 });
+		if (last_number != -1) {
+			if (last_number < memory.size()) {
+				memory.at(last_number) = i - 1;
+			} else {
+				memory.resize(last_number + 1, 0);
+
+				memory.at(last_number) = i - 1;
+			}
 		}
 		last_number = current_number;
 	}
-	//fmt::print( "hashmap size {}\n", memory.size());
+
 	return current_number;
 }
 

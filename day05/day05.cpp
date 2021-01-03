@@ -34,7 +34,7 @@ void tests() {
 	assert(get_seat("BBFFBBFRLL") == 820);
 }
 
-#ifdef NDEBUG
+#if defined NDEBUG  && defined clang
 constexpr
 #endif
 int find_my_seat(std::vector<int> &seats) {

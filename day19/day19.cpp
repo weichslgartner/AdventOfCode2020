@@ -15,6 +15,34 @@
 #include <iterator>
 namespace ranges = std::ranges;
 
+bool dfs(std::vector<int> rule, std::unordered_map<int, std::vector<std::vector<int> > > &rule_map, std::unordered_map<int, char> &leaf_map,
+		std::string_view message) {
+	auto i { 0U };
+	for (auto r : rule) {
+		if (leaf_map.contains(r)) {
+			if (not message.empty() and leaf_map[r] == message[0]) {
+				message = message.substr(1);
+			} else {
+				return false;
+			}
+		} else {
+			if (rule_map[r].size() == 1U) {
+				std::vector<int> new_rule = rule_map[r][0];
+				new_rule.insert(new_rule.end(), rule.begin() + i+1, rule.end());
+				return dfs(new_rule, rule_map, leaf_map, message);
+			} else {
+				std::vector<int> new_rule = rule_map[r][0];
+				new_rule.insert(new_rule.end(), rule.begin() + i+1, rule.end());
+				auto new_rule2 = rule_map[r][1];
+				new_rule2.insert(new_rule2.end(), rule.begin() + i+1, rule.end());
+				return dfs(new_rule, rule_map, leaf_map, message) or dfs(new_rule2, rule_map, leaf_map, message);
+			}
+		}
+		i++;
+	}
+	return message.size() == 0U;
+}
+
 int insert_child_and_clear(auto &inverse_map, auto &instant_replace_map, int key, std::vector<int> &child) {
 	if (child.size() == 1) {
 		instant_replace_map.insert( { child[0], key });
@@ -85,7 +113,7 @@ auto parse_input(auto const &lines) {
 auto cartesian_product(std::unordered_set<int> const &a, std::unordered_set<int> const &b) {
 	std::vector<Point> points { };
 	points.reserve(a.size() * b.size());
-	ranges::for_each( a, [&](int A) {
+	ranges::for_each(a, [&](int A) {
 		ranges::for_each(b, [A, &points](int B) {
 			points.push_back(Point { A, B });
 			//fmt::print("point is {},{}\n", A, B);
@@ -146,17 +174,26 @@ int main() {
 	std::tie(rule_map, leaf_map, inverse_map, instant_replace_map, literal_map, messages) = parse_input(lines);
 	std::vector<bool> matched { };
 	matched.resize(messages.size());
-	std::transform(std::execution::seq, messages.begin(), messages.end(), matched.begin(),
-			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
-				return cyk(inverse_map, literal_map, instant_replace_map, mess);
-			});
+	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),
+	//[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
+	//return cyk(inverse_map, literal_map, instant_replace_map, mess);
+			[&rule_map, &leaf_map](auto  &mess) {
+				return dfs(rule_map[0][0], rule_map, leaf_map, mess);
+			}
+	);
 	fmt::print("Part 1: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true));
+	rule_map[8].push_back({42, 8});
+	rule_map[11].push_back({42, 666});
+	rule_map[666].push_back({11, 31});
 	inverse_map.insert( { Point { 42, 8 }, { 8 } });
 	inverse_map.insert( { Point { 11, 31 }, { 666 } });
 	inverse_map.insert( { Point { 42, 666 }, { 11 } });
-	std::transform(std::execution::seq, messages.begin(), messages.end(), matched.begin(),matched.begin(),
-			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess, bool matched) {
-				return matched or cyk(inverse_map, literal_map, instant_replace_map, mess);
+	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(), matched.begin(),
+			//[&inverse_map, &literal_map, &instant_replace_map](auto const &mess, bool matched) {
+			//	return matched or cyk(inverse_map, literal_map, instant_replace_map, mess);
+			[&rule_map, &leaf_map](auto  &mess, bool matched) {
+							return matched or dfs(rule_map[0][0], rule_map, leaf_map, mess);
+
 			});
 	fmt::print("Part 2: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true)); //294
 	return EXIT_SUCCESS;
