@@ -1,10 +1,7 @@
 #include "common.h"
-
 #include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <cstdint>
-#include <deque>
 #include <fmt/core.h>
 #include <string_view>
 #include <vector>
@@ -17,7 +14,6 @@
 #include <execution>
 #include <iterator>
 namespace ranges = std::ranges;
-
 
 int insert_child_and_clear(auto &inverse_map, auto &instant_replace_map, int key, std::vector<int> &child) {
 	if (child.size() == 1) {
@@ -84,11 +80,13 @@ auto parse_input(auto const &lines) {
 		}
 	}
 	return std::make_tuple(rule_map, leaf_map, inverse_map, instant_replace_map, literal_map, messages);
+
 }
-auto cartesian_product(std::unordered_set<int> &a, std::unordered_set<int> &b) {
+auto cartesian_product(std::unordered_set<int> const &a, std::unordered_set<int> const &b) {
 	std::vector<Point> points { };
-	std::for_each(a.begin(), a.end(), [&](int A) {
-		std::for_each(b.begin(), b.end(), [A, &points](int B) {
+	points.reserve(a.size() * b.size());
+	ranges::for_each( a, [&](int A) {
+		ranges::for_each(b, [A, &points](int B) {
 			points.push_back(Point { A, B });
 			//fmt::print("point is {},{}\n", A, B);
 		}
@@ -121,7 +119,7 @@ bool cyk(std::unordered_map<Point, std::unordered_set<int>> const &inverse_map, 
 					if (inverse_map.contains(p)) {
 						std::unordered_set<int> to_insert = inverse_map.at(p);
 						table.at(l - 1).at(s).insert(to_insert.begin(), to_insert.end());
-						for (auto &instant : to_insert) {
+						for (auto const &instant : to_insert) {
 							if (instant_replace_map.contains(instant)) {
 								table.at(l - 1).at(s).insert(instant_replace_map.at(instant));
 							}
@@ -146,35 +144,21 @@ int main() {
 	std::unordered_map<char, int> literal_map;
 	std::unordered_map<int, int> instant_replace_map;
 	std::tie(rule_map, leaf_map, inverse_map, instant_replace_map, literal_map, messages) = parse_input(lines);
-	std::unordered_set<std::string> valid_mess { };
 	std::vector<bool> matched { };
 	matched.resize(messages.size());
-
-	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),
+	std::transform(std::execution::par, messages.begin(), messages.end(), matched.begin(),
 			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
 				return cyk(inverse_map, literal_map, instant_replace_map, mess);
 			});
 	fmt::print("Part 1: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true));
-
-	rule_map[8].clear();
-	rule_map[8].push_back(std::vector<int> { 42, 8 });
-	rule_map[8].push_back(std::vector<int> { 42 });
-	rule_map[11].clear();
-	rule_map[11].push_back(std::vector<int> { 42, 666 });
-	rule_map[11].push_back(std::vector<int> { 42, 31 });
-	rule_map.insert( { 666, std::vector<std::vector<int>> { std::vector<int> { 11, 31 } } });
 	inverse_map.insert( { Point { 42, 8 }, { 8 } });
 	inverse_map.insert( { Point { 11, 31 }, { 666 } });
 	inverse_map.insert( { Point { 42, 666 }, { 11 } });
-	//matched.clear();
-	//matched.resize(messages.size());
-	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),
-			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess) {
-				return cyk(inverse_map, literal_map, instant_replace_map, mess);
+	std::transform(std::execution::par_unseq, messages.begin(), messages.end(), matched.begin(),matched.begin(),
+			[&inverse_map, &literal_map, &instant_replace_map](auto const &mess, bool matched) {
+				return matched or cyk(inverse_map, literal_map, instant_replace_map, mess);
 			});
-
 	fmt::print("Part 2: {}\n", std::count(std::execution::par_unseq, matched.begin(), matched.end(), true)); //294
-
 	return EXIT_SUCCESS;
 }
 
