@@ -1,11 +1,11 @@
 #include <algorithm>
+#include <fmt/core.h>
 #include <fstream>
-#include <iostream>
 #include <span>
 #include <sstream>
 #include <string>
-#include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 namespace ranges = std::ranges;
 
@@ -27,16 +27,16 @@ count_answers(std::vector<std::string> const &answers) {
 int main(int argc, char **argv) {
   auto const *file_name = "build/input/input_06.txt";
   if (argc == 2) {
-    std::span<char *> args{argv, 2};
+    std::span<char *> args{argv, 2U};
     file_name = args[1];
   }
   std::ifstream infile(file_name);
   if (not infile.is_open()) {
-    std::cerr << "Cannot open " << file_name << "\n";
+	fmt::print(stderr,"Cannot open {}\n", file_name);
     return EXIT_FAILURE;
   }
   std::string line;
-  std::stringstream ss;
+  std::stringstream ss{};
   ss << infile.rdbuf();
   ss << "\n\n"; // empty line for last answer
   std::vector<std::string> cur_answer;
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
       cur_answer.clear();
     }
   }
-  std::cout << "Part 1: " << count_p1 << "\n";
-  std::cout << "Part 2: " << count_p2 << "\n";
+  fmt::print("Part 1: {}\n", count_p1);
+  fmt::print("Part 2: {}\n", count_p2);
   return EXIT_SUCCESS;
 }

@@ -3,8 +3,11 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <deque>
 #include <algorithm>
 #include <fmt/printf.h>
+#include <iterator>
+#include <unordered_map>
 namespace ranges = std::ranges;
 
 struct Bag {
@@ -13,7 +16,7 @@ struct Bag {
 };
 using bag_map_type = std::unordered_map<std::string, std::vector<Bag>>;
 
-void parse_line(std::string_view input, bag_map_type &bag_store) {
+void parse_line(std::string_view const input, bag_map_type  &bag_store) {
 	std::stringstream ss { };
 	ss << input;
 	std::string token { };
@@ -43,39 +46,39 @@ void parse_line(std::string_view input, bag_map_type &bag_store) {
 	bag_store.insert( { key, value });
 }
 
-unsigned part_2(bag_map_type &bag_store) {
-	std::vector<Bag> vec;
-	auto goldbag = bag_store["shinygold"];
+unsigned part_2(bag_map_type const &bag_store) {
+	auto const goldbag = bag_store.at("shinygold");
+	std::deque<Bag> deq;
 	auto count_p2 { 0U };
-	vec.insert(vec.begin(), goldbag.begin(), goldbag.end());
-	while (!vec.empty()) {
-		auto const front = vec.at(0);
+	deq.insert(deq.begin(), goldbag.begin(), goldbag.end());
+	while (!deq.empty()) {
+		auto const front = deq.front();
 		count_p2 += front.quant;
-		auto replace = bag_store[front.name];
+		auto replace = bag_store.at(front.name);
 		ranges::transform(replace, replace.begin(), [&front](auto &x) {
 			x.quant *= front.quant;
 			return x;
 		});
-		ranges::copy_if(replace, std::back_inserter(vec), [](auto const &x) {
+		ranges::copy_if(replace, std::back_inserter(deq), [](auto const &x) {
 			return x.quant > 0;
 		});
-		vec.erase(vec.begin());
+		deq.pop_front();
 	}
 	return count_p2;
 }
 
-unsigned part_1(bag_map_type &bag_store) {
+unsigned part_1(bag_map_type const &bag_store) {
 	auto count_p1 { 0U };
 	for (auto const &val : bag_store) {
 		auto [key, value] = val;
 		while (not value.empty()) {
-			auto front = value.at(0);
+			auto front = value.front();
 			if (front.name == "shinygold") {
 				count_p1++;
 				break;
 			}
 			if (bag_store.contains(front.name)) {
-				auto const replace = bag_store[front.name];
+				auto const replace = bag_store.at(front.name);
 				ranges::copy_if(replace, std::back_inserter(value), [](auto &x) {
 					return x.quant > 0;
 				});
